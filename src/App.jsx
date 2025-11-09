@@ -9,6 +9,7 @@ import CheckoutPage from "./pages/Checkout";
 import Menu from "./pages/Menu"; 
 import ProductDetails from "./pages/ProductDetails";
 import Home from "./pages/Home";
+import UserTables from "./pages/UserTables";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -27,7 +28,9 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
       </Routes>
+      <UserTables></UserTables>
       <Footer/>
+
     </Router>
   );
 }
