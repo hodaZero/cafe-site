@@ -1,9 +1,9 @@
 import heroImg from '../assets/images/hero.png';
 import { useTheme } from '../context/ThemeContext';
-
+import { useNavigate } from 'react-router-dom';
 export default function Hero() {
   const { theme } = useTheme();
-
+    const navigate = useNavigate();
   return (
     <section
       id="home"
@@ -14,7 +14,9 @@ export default function Hero() {
       <div className="relative z-10 text-center text-white px-4">
         <h1 className="text-4xl md:text-6xl font-bold mb-4">Savor The Perfect Cup</h1>
         <p className="text-lg md:text-xl mb-6">Freshly brewed coffee made just for you.</p>
-        <button className="bg-amber-700 hover:bg-amber-800 px-6 py-3 rounded-full font-medium transition">
+        <button 
+        onClick={()=>navigate('/menu')}
+        className="bg-amber-700 hover:bg-amber-800 px-6 py-3 rounded-full font-medium transition">
           Order Now
         </button>
       </div>
