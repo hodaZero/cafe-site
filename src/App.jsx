@@ -6,6 +6,8 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
+import Menu from "./pages/Menu"; 
+import ProductDetails from "./pages/ProductDetails";
 
 function App() {
   return (
@@ -14,11 +16,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/menu" element={<Menu />} /> 
+        <Route path="/product/:id" element={<ProductDetails />} /> 
       </Routes>
-      <CartPage></CartPage>
-      <CheckoutPage></CheckoutPage>
+      <CartPage />
+      <CheckoutPage />
     </Router>
-    
   );
 }
 
