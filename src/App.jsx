@@ -12,8 +12,11 @@ import Home from "./pages/Home";
 import UserTables from "./pages/UserTables";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+
 import AdminOrders from "./pages/AdminOrders";
 import Favorites from "./pages/Favorites";
+
+import AdminTables from "./pages/AdminTable";
 
 
 function App() {
@@ -30,9 +33,13 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} /> 
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/favorites" element={<Favorites />} />
         
+
+
+        <Route path="/adminTables" element={<AdminTables/>} />
 
       </Routes>
       <UserTables></UserTables>
