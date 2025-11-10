@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import UserTables from "./pages/UserTables";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import AdminTables from "./pages/AdminTable";
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} /> 
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/adminTables" element={<AdminTables/>} />
       </Routes>
       <UserTables></UserTables>
       <Footer/>
