@@ -36,13 +36,14 @@ function App() {
 
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/favorites" element={<Favorites />} />
+        <Route path="/userTables" element={<UserTables />} />
         
 
 
         <Route path="/adminTables" element={<AdminTables/>} />
 
       </Routes>
-      <UserTables></UserTables>
+     
       <Footer/>
 
     </Router>
