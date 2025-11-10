@@ -54,14 +54,13 @@ const Login = () => {
       ></div>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      <div className="relative z-10 bg-white bg-opacity-20 p-16 rounded-xl shadow-xl w-full max-w-lg">
+      <div className="relative z-10 bg-white bg-opacity-20 p-14 rounded-xl shadow-xl w-full max-w-md">
         <h2 className="text-3xl font-bold mb-8 text-center text-white">
           Login
         </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-gray-700 text-lg">Email</label>
             <input
               type="email"
               name="email"
@@ -76,7 +75,6 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 text-lg">Password</label>
             <input
               type="password"
               name="password"
