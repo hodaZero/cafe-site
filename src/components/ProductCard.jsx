@@ -8,6 +8,7 @@ const ProductCard = ({
   showHeartTop = false,
   isFavorite = false,
   onToggleFavorite,
+  hideFavorite = false, // إضافة prop جديدة
 }) => {
   const navigate = useNavigate();
 
@@ -16,7 +17,8 @@ const ProductCard = ({
       onClick={() => navigate(`/product/${product.id}`)}
       className="relative bg-[#1a1a1a] text-white rounded-xl p-5 cursor-pointer hover:scale-105 transition-transform"
     >
-      {showHeartTop && (
+      {/* أيقونة القلب في الأعلى */}
+      {showHeartTop && !hideFavorite && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -45,8 +47,8 @@ const ProductCard = ({
         <span>{product.rating}</span>
       </div>
 
-     
-      {!showHeartTop && (
+      {/* أيقونة القلب في الأسفل وزرار الكارت */}
+      {!showHeartTop && !hideFavorite && (
         <div className="flex justify-center gap-4 mt-3">
           <button
             onClick={(e) => {

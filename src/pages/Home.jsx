@@ -18,10 +18,14 @@ const Home = () => {
   ];
 
   return (
-    <div className={theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"}>
-      <button onClick={toggleTheme} className="p-2 m-4 border">
+    <div className={theme === "light" ? "bg-white text-black" : "bg-dark text-white"}>
+      <button
+        onClick={toggleTheme}
+        className="p-2 m-4 border border-primary rounded-md text-primary hover:bg-primary/10 transition"
+      >
         Toggle Theme
       </button>
+
       {sections.map(({ Component }, index) => (
         <motion.div
           key={index}
