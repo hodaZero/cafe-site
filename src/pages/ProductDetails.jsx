@@ -1,16 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Clock } from "lucide-react";
-import { products } from "../components/ProductList";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true); 
 
-  const product = products.find((p) => p.id === parseInt(id));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const ref = doc(db, "products", id);
+        const snapshot = await getDoc(ref);
+        if (snapshot.exists()) {
+          setProduct({ id: snapshot.id, ...snapshot.data() });
+        } else {
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!product)
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return <p className="text-white text-center mt-10">Loading product...</p>;
+  }
+
+  if (!product) {
     return <p className="text-white text-center mt-10">Product not found</p>;
+  }
 
   return (
     <div className="bg-black text-white min-h-screen flex flex-col items-center justify-center px-6 relative">
