@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
@@ -8,22 +8,27 @@ import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
 import Menu from "./pages/Menu"; 
 import ProductDetails from "./pages/ProductDetails";
-import Home from "./pages/Home";
+import Home from "./pages/Home"; 
 import UserTables from "./pages/UserTables";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 import AdminOrders from "./pages/AdminOrders";
 import Favorites from "./pages/Favorites";
-
 import AdminTables from "./pages/AdminTable";
+import DashboardLayout from "./pages/Dashboard/DashboardLayout";
+import ProductsDashboard from "./pages/Dashboard/ProductsDashboard";
 
+function AppContent() {
+  const location = useLocation();
 
-function App() {
+  // لو المسار الحالي يبدأ بـ "/admin" يبقى نخفي Navbar و Footer
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!isAdminRoute && <Navbar />}
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/profile" element={<ProfilePage />} /> 
@@ -37,18 +42,29 @@ function App() {
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/userTables" element={<UserTables />} />
-        
+        <Route path="/adminTables" element={<AdminTables />} />
 
-
-        <Route path="/adminTables" element={<AdminTables/>} />
-
+        <Route
+          path="/admin/products"
+          element={
+            <DashboardLayout>
+              <ProductsDashboard />
+            </DashboardLayout>
+          }
+        />
       </Routes>
-     
-      <Footer/>
 
-    </Router>
+      {!isAdminRoute && <Footer />}
+    </>
   );
 }
 
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
 
 export default App;
