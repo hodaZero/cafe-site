@@ -1,19 +1,22 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleFavorite } from "../redux/favoriteSlice";
 
-const ProductCard = ({
-  product,
-  showCart = true,
-  showHeartTop = false,
-  isFavorite = false,
-  onToggleFavorite,
-  hideFavorite = false, 
-}) => {
+const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavorite = false }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const favorites = useSelector((state) => state.favorite.favorites);
+  const isFavorite = favorites.some((item) => item.id === product.id);
 
   const handleCardClick = () => {
     navigate(`/product/${product.id}`);
+  };
+
+  const handleToggleFavorite = (e) => {
+    e.stopPropagation(); // عشان ما ينفعش ينقل للصفحة عند الضغط على القلب
+    dispatch(toggleFavorite(product)); // نشغل الفيفوريت بدون تحقق من login
   };
 
   return (
@@ -21,13 +24,9 @@ const ProductCard = ({
       onClick={handleCardClick}
       className="relative bg-[#1a1a1a] text-white rounded-xl p-5 cursor-pointer hover:scale-105 transition-transform"
     >
-      {/* أيقونة القلب في الأعلى */}
       {showHeartTop && !hideFavorite && (
         <button
-          onClick={(e) => {
-            e.stopPropagation(); // يمنع فتح التفاصيل عند الضغط على القلب
-            onToggleFavorite?.(product);
-          }}
+          onClick={handleToggleFavorite}
           className={`absolute top-3 right-3 p-2 rounded-full transition ${
             isFavorite ? "bg-[#d3ad7f] text-white" : "bg-[#333] text-[#d3ad7f]"
           }`}
@@ -37,11 +36,7 @@ const ProductCard = ({
       )}
 
       <div className="flex justify-center mb-4">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-32 h-32 object-cover rounded-full"
-        />
+        <img src={product.image} alt={product.name} className="w-32 h-32 object-cover rounded-full" />
       </div>
 
       <h3 className="text-lg font-semibold text-center">{product.name}</h3>
@@ -51,14 +46,10 @@ const ProductCard = ({
         <span>{product.rating}</span>
       </div>
 
-      {/* أيقونة القلب في الأسفل وزرار الكارت */}
       {!showHeartTop && !hideFavorite && (
         <div className="flex justify-center gap-4 mt-3">
           <button
-            onClick={(e) => {
-              e.stopPropagation(); // يمنع فتح التفاصيل عند الضغط على القلب
-              onToggleFavorite?.(product);
-            }}
+            onClick={handleToggleFavorite}
             className={`p-2 rounded-full transition ${
               isFavorite ? "bg-[#d3ad7f] text-white" : "bg-[#333] hover:bg-[#d3ad7f]"
             }`}
@@ -67,10 +58,7 @@ const ProductCard = ({
           </button>
 
           {showCart && (
-            <button
-              onClick={(e) => e.stopPropagation()} // يمنع فتح التفاصيل عند الضغط على الكارت
-              className="bg-[#333] p-2 rounded-full hover:bg-[#d3ad7f] transition"
-            >
+            <button onClick={(e) => e.stopPropagation()} className="bg-[#333] p-2 rounded-full hover:bg-[#d3ad7f] transition">
               <ShoppingCart size={18} />
             </button>
           )}
