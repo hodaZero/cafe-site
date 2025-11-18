@@ -1,8 +1,9 @@
 // src/firebase/firebaseConfig.js
+
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // 🔹 مهم
+import { getAuth } from "firebase/auth"; // مهم
 
 // Firebase configuration
 const firebaseConfig = {
@@ -25,5 +26,5 @@ const db = getFirestore(app);
 // Initialize Auth
 const auth = getAuth(app);
 
-// Export everything مرة واحدة ✅
+// Export
 export { app, analytics, db, auth };

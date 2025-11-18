@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
+import { loginUser } from "../../firebase/auth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +10,7 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate(); // <-- استخدمنا useNavigate
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,7 +33,7 @@ const Login = () => {
     return "";
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const emailError = validateEmail(formData.email);
@@ -42,8 +45,17 @@ const Login = () => {
     }
 
     setErrors({});
-    console.log("Form submitted:", formData);
-    alert("Login successful!");
+
+    try {
+      const user = await loginUser(formData.email, formData.password);
+      console.log("User logged in:", user);
+
+      // بعد نجاح تسجيل الدخول، نذهب مباشرة إلى الصفحة الرئيسية
+      navigate("/");
+    } catch (err) {
+      console.error(err.message);
+      alert("Error: " + err.message);
+    }
   };
 
   return (
