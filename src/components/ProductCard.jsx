@@ -3,20 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleFavorite } from "../redux/favoriteSlice";
+import { toggleCartItem } from "../redux/cartSlice";
 
 const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavorite = false }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const favorites = useSelector((state) => state.favorite.favorites);
-  const isFavorite = favorites.some((item) => item.id === product.id);
+  
+  const favorites = useSelector((state) => state.favorite?.favorites || []);
+  const cartItems = useSelector((state) => state.cart?.items || []);
 
-  const handleCardClick = () => {
-    navigate(`/product/${product.id}`);
-  };
+  const isFavorite = favorites.some((item) => item.productId === product.id);
+  const isInCart = cartItems.some((item) => item.productId === product.id);
+
+  const handleCardClick = () => navigate(`/product/${product.id}`);
 
   const handleToggleFavorite = (e) => {
-    e.stopPropagation(); // عشان ما ينفعش ينقل للصفحة عند الضغط على القلب
-    dispatch(toggleFavorite(product)); // نشغل الفيفوريت بدون تحقق من login
+    e.stopPropagation();
+    dispatch(toggleFavorite(product));
+  };
+
+  const handleToggleCart = (e) => {
+    e.stopPropagation();
+    dispatch(toggleCartItem({ product, quantity: 1 }));
   };
 
   return (
@@ -58,7 +66,12 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
           </button>
 
           {showCart && (
-            <button onClick={(e) => e.stopPropagation()} className="bg-[#333] p-2 rounded-full hover:bg-[#d3ad7f] transition">
+            <button
+              onClick={handleToggleCart}
+              className={`p-2 rounded-full transition ${
+                isInCart ? "bg-[#d3ad7f] text-white" : "bg-[#333] hover:bg-[#d3ad7f]"
+              }`}
+            >
               <ShoppingCart size={18} />
             </button>
           )}
