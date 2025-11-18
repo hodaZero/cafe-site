@@ -1,7 +1,9 @@
+// src/firebase/firebaseConfig.js
+
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // جديد
+import { getAuth } from "firebase/auth"; // مهم
 
 // Firebase configuration
 const firebaseConfig = {
@@ -11,7 +13,7 @@ const firebaseConfig = {
   storageBucket: "coffee-site-iti.appspot.com",
   messagingSenderId: "330809796631",
   appId: "1:330809796631:web:a4f0db5ffc334ff16ad452",
-  measurementId: "G-6QMBCFKMJB"
+  measurementId: "G-6QMBCFKMJB",
 };
 
 // Initialize Firebase
@@ -19,7 +21,10 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
 // Initialize Firestore
-export const db = getFirestore(app);
-export const auth = getAuth(app); // جديد
+const db = getFirestore(app);
 
-export { app, analytics };
+// Initialize Auth
+const auth = getAuth(app);
+
+// Export
+export { app, analytics, db, auth };
