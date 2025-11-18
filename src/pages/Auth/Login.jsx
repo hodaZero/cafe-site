@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
+import { loginUser } from "../../firebase/auth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -30,7 +31,7 @@ const Login = () => {
     return "";
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const emailError = validateEmail(formData.email);
@@ -42,8 +43,15 @@ const Login = () => {
     }
 
     setErrors({});
-    console.log("Form submitted:", formData);
-    alert("Login successful!");
+
+    try {
+      const user = await loginUser(formData.email, formData.password);
+      console.log("User logged in:", user);
+      alert("Login successful!");
+    } catch (err) {
+      console.error(err.message);
+      alert("Error: " + err.message);
+    }
   };
 
   return (
