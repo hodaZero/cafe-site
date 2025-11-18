@@ -8,20 +8,24 @@ const ProductCard = ({
   showHeartTop = false,
   isFavorite = false,
   onToggleFavorite,
-  hideFavorite = false, // إضافة prop جديدة
+  hideFavorite = false, 
 }) => {
   const navigate = useNavigate();
 
+  const handleCardClick = () => {
+    navigate(`/product/${product.id}`);
+  };
+
   return (
     <div
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={handleCardClick}
       className="relative bg-[#1a1a1a] text-white rounded-xl p-5 cursor-pointer hover:scale-105 transition-transform"
     >
       {/* أيقونة القلب في الأعلى */}
       {showHeartTop && !hideFavorite && (
         <button
           onClick={(e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // يمنع فتح التفاصيل عند الضغط على القلب
             onToggleFavorite?.(product);
           }}
           className={`absolute top-3 right-3 p-2 rounded-full transition ${
@@ -52,7 +56,7 @@ const ProductCard = ({
         <div className="flex justify-center gap-4 mt-3">
           <button
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation(); // يمنع فتح التفاصيل عند الضغط على القلب
               onToggleFavorite?.(product);
             }}
             className={`p-2 rounded-full transition ${
@@ -64,7 +68,7 @@ const ProductCard = ({
 
           {showCart && (
             <button
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()} // يمنع فتح التفاصيل عند الضغط على الكارت
               className="bg-[#333] p-2 rounded-full hover:bg-[#d3ad7f] transition"
             >
               <ShoppingCart size={18} />

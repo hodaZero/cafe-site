@@ -1,62 +1,203 @@
-import React from "react";
+// import React, { useState, useEffect } from "react";
+// import ProductCard from "./ProductCard";
+// import { getProducts } from "../firebase/firestore"; 
+
+// const ProductList = () => {
+//   const [products, setProducts] = useState([]);
+//   const [search, setSearch] = useState("");
+//   const [filterCategory, setFilterCategory] = useState("All");
+//   const [filterPrice, setFilterPrice] = useState("All");
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const productsPerPage = 6;
+
+//   // Fetch products from Firestore
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       const data = await getProducts();
+//       setProducts(data);
+//     };
+//     fetchData();
+//   }, []);
+
+//   // Filter & Search
+//   const filteredProducts = products
+//     .filter(p =>
+//       p.name.toLowerCase().includes(search.toLowerCase()) ||
+//       p.category.toLowerCase().includes(search.toLowerCase())
+//     )
+//     .filter(p =>
+//       filterCategory === "All" ? true : p.category === filterCategory
+//     )
+//     .sort((a, b) => {
+//       if (filterPrice === "LowToHigh") return a.price - b.price;
+//       if (filterPrice === "HighToLow") return b.price - a.price;
+//       return 0;
+//     });
+
+//   // Pagination
+//   const indexOfLastProduct = currentPage * productsPerPage;
+//   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+//   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+//   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+//   return (
+//     <div>
+//       {/* Search & Filters */}
+//       <div className="flex flex-col md:flex-row justify-center gap-4 mb-6">
+//         <input
+//           type="text"
+//           placeholder="Search products..."
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//           className="p-2 rounded bg-gray-800 text-white w-full md:w-1/3"
+//         />
+
+//         <select
+//           value={filterCategory}
+//           onChange={(e) => setFilterCategory(e.target.value)}
+//           className="p-2 rounded bg-gray-800 text-white"
+//         >
+//           <option value="All">All Categories</option>
+//           <option value="Drinks">Drinks</option>
+//           <option value="Cake">Cake</option>
+//           <option value="Desserts">Desserts</option>
+//         </select>
+
+//         <select
+//           value={filterPrice}
+//           onChange={(e) => setFilterPrice(e.target.value)}
+//           className="p-2 rounded bg-gray-800 text-white"
+//         >
+//           <option value="All">Default</option>
+//           <option value="LowToHigh">Price: Low → High</option>
+//           <option value="HighToLow">Price: High → Low</option>
+//         </select>
+//       </div>
+
+//       {/* Product Cards */}
+//       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 py-10">
+//         {currentProducts.map((product) => (
+//           <ProductCard key={product.id} product={product} />
+//         ))}
+//       </div>
+
+//       {/* Pagination */}
+//       <div className="flex justify-center gap-2 mt-6">
+//         {Array.from({ length: totalPages }, (_, i) => (
+//           <button
+//             key={i}
+//             onClick={() => setCurrentPage(i + 1)}
+//             className={`px-3 py-1 rounded ${
+//               currentPage === i + 1 ? "bg-[#d3ad7f]" : "bg-gray-700"
+//             }`}
+//           >
+//             {i + 1}
+//           </button>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProductList;
+
+
+
+
+import React, { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
-
-const products = [
-  {
-    id: 1,
-    name: "Tasty & Healthy Coffee",
-    price: 40,
-    image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&q=60",
-    description: "A smooth and creamy coffee blend made with fresh beans and a touch of sweetness.",
-    rating: 4.5,
-    prepTime: "5 min",
-  },
-  {
-    id: 2,
-    name: "Cappuccino",
-    price: 50,
-    image: "https://images.unsplash.com/photo-1588776814546-8c7bfe91a30c?auto=format&fit=crop&w=500&q=60",
-    description: "Classic cappuccino with a perfect layer of foam, made with freshly brewed espresso.",
-    rating: 4.8,
-    prepTime: "6 min",
-  },
-  {
-    id: 3,
-    name: "Latte",
-    price: 60,
-    image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=500&q=60",
-    description: "Smooth latte with creamy milk and rich espresso, perfect for your morning routine.",
-    rating: 4.7,
-    prepTime: "7 min",
-  },
-  {
-    id: 4,
-    name: "Mocha",
-    price: 55,
-    image: "https://images.unsplash.com/photo-1562440499-64e4f3d8e55b?auto=format&fit=crop&w=500&q=60",
-    description: "Chocolate-flavored coffee with a rich and creamy taste.",
-    rating: 4.3,
-    prepTime: "6 min",
-  },
-  {
-    id: 5,
-    name: "Espresso",
-    price: 35,
-    image: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=500&q=60",
-    description: "Strong and bold espresso shot made from high-quality beans.",
-    rating: 4.6,
-    prepTime: "3 min",
-  },
-];
-
-export { products };
+import { getProducts } from "../firebase/firestore";
 
 const ProductList = () => {
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterPrice, setFilterPrice] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 6;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getProducts();
+      setProducts(data);
+    };
+    fetchData();
+  }, []);
+
+  const filteredProducts = products
+    .filter(p =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.category.toLowerCase().includes(search.toLowerCase())
+    )
+    .filter(p =>
+      filterCategory === "All" ? true : p.category === filterCategory
+    )
+    .sort((a, b) => {
+      if (filterPrice === "LowToHigh") return a.price - b.price;
+      if (filterPrice === "HighToLow") return b.price - a.price;
+      return 0;
+    });
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 py-10">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+    <div>
+      {/* Search & Filters */}
+      <div className="flex flex-col md:flex-row justify-center gap-4 mb-6 mt-6">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-2 rounded bg-dark text-white w-full md:w-1/3 border border-primary placeholder-white"
+        />
+
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="p-2 rounded bg-dark text-white border border-primary"
+        >
+          <option value="All">All Categories</option>
+          <option value="Drinks">Drinks</option>
+          <option value="Cake">Cake</option>
+          <option value="Desserts">Desserts</option>
+        </select>
+
+        <select
+          value={filterPrice}
+          onChange={(e) => setFilterPrice(e.target.value)}
+          className="p-2 rounded bg-dark text-white border border-primary"
+        >
+          <option value="All">Default</option>
+          <option value="LowToHigh">Price: Low → High</option>
+          <option value="HighToLow">Price: High → Low</option>
+        </select>
+      </div>
+
+      {/* Product Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 py-10">
+        {currentProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center gap-2 mt-6">
+        {Array.from({ length: totalPages }, (_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentPage(i + 1)}
+            className={`px-3 py-1 rounded border border-primary ${
+              currentPage === i + 1 ? "bg-primary text-black" : "bg-dark text-white"
+            }`}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
