@@ -9,9 +9,9 @@ export default function Sidebar() {
   const links = [
     { name: "Products", path: "/admin/products" },
     { name: "Orders", path: "/admin/orders" },
-    { name: "Table", path: "/adminTables" },
-    { name: "Users", path: "/userTables" },
-    { name: "Settings", path: "/dashboard/settings" },
+    { name: "Tables", path: "/admin/tables" },  // ✔ تعديل
+    // { name: "Users", path: "/admin/users" },    // ✔ تعديل
+    { name: "Settings", path: "/admin/settings" }, // ✔ تعديل
   ];
 
   const sidebarBg = theme === "light" ? "bg-light-surface border-light-inputBorder" : "bg-dark-surface border-dark-inputBorder";

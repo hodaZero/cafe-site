@@ -56,8 +56,7 @@ const Register = () => {
     setErrors({});
 
     try {
-      const user = await registerUser(formData.email, formData.password, formData.name);
-      console.log("User registered:", user);
+      await registerUser(formData.email, formData.password, formData.name);
       navigate("/");
     } catch (err) {
       console.error(err.message);
@@ -65,10 +64,20 @@ const Register = () => {
     }
   };
 
-  // تحديد الألوان حسب التيم
-  const cardBg = theme === "light" ? "bg-light-surface bg-opacity-90 text-light-text" : "bg-dark-surface bg-opacity-90 text-dark-text";
-  const inputBorder = theme === "light" ? "border-light-inputBorder" : "border-dark-inputBorder";
-  const primaryBtn = theme === "light" ? "bg-light-primary hover:bg-light-primaryHover text-black" : "bg-dark-primary hover:bg-dark-primaryHover text-dark-text";
+  const cardBg =
+    theme === "light"
+      ? "bg-light-surface bg-opacity-90 text-light-text"
+      : "bg-dark-surface bg-opacity-90 text-dark-text";
+
+  const inputBorder =
+    theme === "light"
+      ? "border-light-inputBorder"
+      : "border-dark-inputBorder";
+
+  const primaryBtn =
+    theme === "light"
+      ? "bg-light-primary hover:bg-light-primaryHover text-black"
+      : "bg-dark-primary hover:bg-dark-primaryHover text-dark-text";
 
   return (
     <div className="min-h-screen relative flex items-center justify-center">
@@ -78,10 +87,10 @@ const Register = () => {
       ></div>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      <div className={`relative z-10 p-14 rounded-xl shadow-xl w-full max-w-md transition-colors duration-300 ${cardBg}`}>
-        <h2 className="text-3xl font-bold mb-8 text-center">
-          Register
-        </h2>
+      <div
+        className={`relative z-10 p-14 rounded-xl shadow-xl w-full max-w-md transition-colors duration-300 ${cardBg}`}
+      >
+        <h2 className="text-3xl font-bold mb-8 text-center">Register</h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -93,7 +102,9 @@ const Register = () => {
               onChange={handleChange}
               className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -105,7 +116,9 @@ const Register = () => {
               onChange={handleChange}
               className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
 
           <div>
@@ -117,7 +130,9 @@ const Register = () => {
               onChange={handleChange}
               className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
 
           <button
@@ -130,7 +145,12 @@ const Register = () => {
 
         <p className="text-center mt-6 text-lg">
           Already have an account?{" "}
-          <a href="/login" className={`font-semibold ${theme === "light" ? "text-light-primary" : "text-dark-primary"}`}>
+          <a
+            href="/login"
+            className={`font-semibold ${
+              theme === "light" ? "text-light-primary" : "text-dark-primary"
+            }`}
+          >
             Login
           </a>
         </p>

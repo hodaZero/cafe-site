@@ -7,12 +7,12 @@ import { store } from "./redux/store";
 // Pages
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import ProfilePage from "./pages/ProfilePage"; 
+import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
-import Menu from "./pages/Menu"; 
+import Menu from "./pages/Menu";
 import ProductDetails from "./pages/ProductDetails";
-import Home from "./pages/Home"; 
+import Home from "./pages/Home";
 import UserTables from "./pages/UserTables";
 import AdminOrders from "./pages/AdminOrders";
 import Favorites from "./pages/Favorites";
@@ -30,33 +30,35 @@ function AppContent() {
 
   return (
     <>
+      {/* لو مش صفحات الادمين → اعرض Navbar */}
       {!isAdminRoute && <Navbar />}
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/profile" element={<ProfilePage />} /> 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/menu" element={<Menu />} /> 
-        <Route path="/product/:id" element={<ProductDetails />} /> 
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
+      {/* صفحات الادمين */}
+      {isAdminRoute ? (
+        <DashboardLayout>
+          <Routes>
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/products" element={<ProductsDashboard />} />
+            <Route path="/admin/tables" element={<AdminTables />} />
+          </Routes>
+        </DashboardLayout>
+      ) : (
+        // باقي صفحات اليوزر
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/userTables" element={<UserTables />} />
+        </Routes>
+      )}
 
-        <Route path="/admin/orders" element={<AdminOrders />} />
-        <Route path="/favorites" element={<Favorites />} />
-        <Route path="/userTables" element={<UserTables />} />
-        <Route path="/adminTables" element={<AdminTables />} />
-
-        <Route
-          path="/admin/products"
-          element={
-            <DashboardLayout>
-              <ProductsDashboard />
-            </DashboardLayout>
-          }
-        />
-      </Routes>
-
+      {/* لو مش Admin → اعرض Footer */}
       {!isAdminRoute && <Footer />}
     </>
   );
@@ -64,7 +66,7 @@ function AppContent() {
 
 function App() {
   return (
-    <Provider store={store}> {/* 🔹 Provider للـ Redux */}
+    <Provider store={store}>
       <Router>
         <AppContent />
       </Router>
