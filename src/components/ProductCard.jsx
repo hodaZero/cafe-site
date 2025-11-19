@@ -5,27 +5,40 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggleFavorite } from "../redux/favoriteSlice";
 import { toggleCartItem } from "../redux/cartSlice";
 import { useTheme } from "../context/ThemeContext";
+import { auth } from "../firebase/firebaseConfig";
 
 const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavorite = false }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const favorites = useSelector((state) => state.favorite?.favorites || []);
   const cartItems = useSelector((state) => state.cart?.items || []);
   const { theme } = useTheme();
 
-  const isFavorite = favorites.some((item) => item.productId === product.id);
-  const isInCart = cartItems.some((item) => item.productId === product.id);
+  
+  const productId = product.id || product.productId;
 
-  const handleCardClick = () => navigate(`/product/${product.id}`);
+  const isFavorite = favorites.some((item) => item.productId === productId);
+  const isInCart = cartItems.some((item) => item.productId === productId);
+
+  const handleCardClick = () => navigate(`/product/${productId}`);
 
   const handleToggleFavorite = (e) => {
     e.stopPropagation();
-    dispatch(toggleFavorite(product));
+    if (!auth.currentUser) {
+      navigate("/login"); 
+      return;
+    }
+    dispatch(toggleFavorite({ ...product, productId }));
   };
 
   const handleToggleCart = (e) => {
     e.stopPropagation();
-    dispatch(toggleCartItem({ product, quantity: 1 }));
+    if (!auth.currentUser) {
+      navigate("/login"); 
+      return;
+    }
+    dispatch(toggleCartItem({ product: { ...product, productId }, quantity: 1 }));
   };
 
   // Theme-based classes
@@ -51,7 +64,11 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
       )}
 
       <div className="flex justify-center mb-4">
-        <img src={product.image} alt={product.name} className="w-32 h-32 object-cover rounded-full" />
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-32 h-32 object-cover rounded-full"
+        />
       </div>
 
       <h3 className="text-lg font-semibold text-center">{product.name}</h3>
