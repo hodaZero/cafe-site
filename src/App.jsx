@@ -19,6 +19,8 @@ import Favorites from "./pages/Favorites";
 import AdminTables from "./pages/AdminTable";
 import DashboardLayout from "./pages/Dashboard/DashboardLayout";
 import ProductsDashboard from "./pages/Dashboard/ProductsDashboard";
+import Orders from "./pages/Orders";
+
 
 // Components
 import Navbar from "./components/Navbar";
@@ -55,6 +57,7 @@ function AppContent() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/userTables" element={<UserTables />} />
+           <Route path="/orders" element={<Orders />} />
         </Routes>
       )}
 
