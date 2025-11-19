@@ -14,10 +14,10 @@ const goToMenu = () => {
     navigate('/menu'); 
   };
   return (
-    <section className={`py-16 -mt-16 px-6 transition-colors duration-300 ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
+    <section className={`py-16 -mt-16 px-6 transition-colors duration-300 ${theme === "dark" ? "bg-dark-background" : "bg-light-background"}`}>
       <div className="container mx-auto px-4 text-center">
-         <button onClick={goToMenu} className='mb-3'><h2 className={`text-3xl md:text-4xl font-bold ${theme === "dark" ? "text-amber-300" : "text-amber-800"} pt-10`}>
-        OUR <span className={theme === "dark" ? "text-amber-300" : "text-amber-800"}>MENU</span>
+         <button onClick={goToMenu} className='mb-3'><h2 className={`text-3xl md:text-4xl font-bold ${theme === "dark" ? "text-dark-text" : "text-light-text"} pt-10`}>
+        OUR <span className={theme === "dark" ? "text-dark-primary" : "text-light-primary"}>MENU</span>
       </h2></button>
         
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">

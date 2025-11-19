@@ -7,10 +7,16 @@ export default function ThemeToggle({ className = "" }) {
   return (
     <button
       onClick={toggleTheme}
-      className={`p-2 rounded-md ${className}`}
-      aria-label="Toggle theme"
+      className={`p-2 rounded-md transition-colors duration-300
+        ${theme === "dark" ? "text-dark-text hover:text-dark-primary" : "text-light-text hover:text-light-primary"}
+        ${className}
+      `}
     >
-      {theme === "light" ? <Moon size={20} /> : <Sun size={20} color= "#D1D5DB"/>}
+      {theme === "light" ? (
+        <Moon size={20} />
+      ) : (
+        <Sun size={20} />
+      )}
     </button>
   );
 }

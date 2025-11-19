@@ -2,19 +2,25 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ProductCard from "../components/ProductCard";
 import { fetchFavorites } from "../redux/favoriteSlice";
+import { useTheme } from "../context/ThemeContext";
 
 const Favorites = () => {
   const dispatch = useDispatch();
-  const favorites = useSelector((state) => state.favorite.favorites);
+  const { theme } = useTheme();
+
+  const favorites = useSelector((state) => state.favorite.favorites || []);
   const loading = useSelector((state) => state.favorite.loading);
 
   useEffect(() => {
     dispatch(fetchFavorites());
   }, [dispatch]);
 
+  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
+  const textPrimary = theme === "light" ? "text-light-primary" : "text-dark-primary";
+
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white px-8 pt-16 pb-12">
-      <h1 className="text-3xl font-bold text-center text-white mb-8">Your Favorites</h1>
+    <div className={`min-h-screen px-8 pt-16 pb-12 transition-colors duration-300 ${bgMain}`}>
+      <h1 className={`text-3xl font-bold text-center mb-8 ${textPrimary}`}>Your Favorites</h1>
 
       {loading ? (
         <p className="text-center text-gray-400 text-lg">Loading...</p>

@@ -4,13 +4,14 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleFavorite } from "../redux/favoriteSlice";
 import { toggleCartItem } from "../redux/cartSlice";
+import { useTheme } from "../context/ThemeContext";
 
 const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavorite = false }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
   const favorites = useSelector((state) => state.favorite?.favorites || []);
   const cartItems = useSelector((state) => state.cart?.items || []);
+  const { theme } = useTheme();
 
   const isFavorite = favorites.some((item) => item.productId === product.id);
   const isInCart = cartItems.some((item) => item.productId === product.id);
@@ -27,17 +28,23 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
     dispatch(toggleCartItem({ product, quantity: 1 }));
   };
 
+  // Theme-based classes
+  const cardBg = theme === "light" ? "bg-light-surface text-light-text" : "bg-dark-surface text-dark-text";
+  const heartActive = theme === "light" ? "bg-light-primary text-white" : "bg-dark-primary text-white";
+  const heartInactive = theme === "light" ? "bg-[#e5e5e5] text-light-primary" : "bg-[#1a1a1e] text-dark-primary";
+  const cartActive = theme === "light" ? "bg-light-primary text-white" : "bg-dark-primary text-white";
+  const cartInactive = theme === "light" ? "bg-[#e5e5e5] hover:bg-light-primary text-light-text" : "bg-[#1a1a1e] hover:bg-dark-primary text-dark-text";
+  const priceColor = theme === "light" ? "text-light-primary" : "text-dark-primary";
+
   return (
     <div
       onClick={handleCardClick}
-      className="relative bg-[#1a1a1a] text-white rounded-xl p-5 cursor-pointer hover:scale-105 transition-transform"
+      className={`relative rounded-xl p-5 cursor-pointer hover:scale-105 transition-transform ${cardBg}`}
     >
       {showHeartTop && !hideFavorite && (
         <button
           onClick={handleToggleFavorite}
-          className={`absolute top-3 right-3 p-2 rounded-full transition ${
-            isFavorite ? "bg-[#d3ad7f] text-white" : "bg-[#333] text-[#d3ad7f]"
-          }`}
+          className={`absolute top-3 right-3 p-2 rounded-full transition ${isFavorite ? heartActive : heartInactive}`}
         >
           <Heart size={18} fill={isFavorite ? "#fff" : "none"} />
         </button>
@@ -49,28 +56,26 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
 
       <h3 className="text-lg font-semibold text-center">{product.name}</h3>
 
-      <div className="flex justify-center items-center gap-4 text-[#d3ad7f] text-sm mb-2">
+      <div className={`flex justify-center items-center gap-4 text-sm mb-2 ${priceColor}`}>
         <p>₹{product.price}.00</p>
         <span>{product.rating}</span>
       </div>
 
       {!showHeartTop && !hideFavorite && (
         <div className="flex justify-center gap-4 mt-3">
+          {/* Favorite Button */}
           <button
             onClick={handleToggleFavorite}
-            className={`p-2 rounded-full transition ${
-              isFavorite ? "bg-[#d3ad7f] text-white" : "bg-[#333] hover:bg-[#d3ad7f]"
-            }`}
+            className={`p-2 rounded-full transition ${isFavorite ? heartActive : heartInactive}`}
           >
             <Heart size={18} fill={isFavorite ? "#fff" : "none"} />
           </button>
 
+          {/* Cart Button */}
           {showCart && (
             <button
               onClick={handleToggleCart}
-              className={`p-2 rounded-full transition ${
-                isInCart ? "bg-[#d3ad7f] text-white" : "bg-[#333] hover:bg-[#d3ad7f]"
-              }`}
+              className={`p-2 rounded-full transition ${isInCart ? cartActive : cartInactive}`}
             >
               <ShoppingCart size={18} />
             </button>

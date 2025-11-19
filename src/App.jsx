@@ -26,8 +26,6 @@ import Footer from "./components/Footer";
 
 function AppContent() {
   const location = useLocation();
-
-  // لو المسار الحالي يبدأ بـ "/admin" نخفي Navbar و Footer
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (

@@ -9,6 +9,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
 
 const initialOrders = [
   {
@@ -92,6 +93,7 @@ const initialOrders = [
 ];
 
 export default function AdminOrders() {
+  const { theme } = useTheme();
   const [orders, setOrders] = useState(initialOrders);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -111,22 +113,30 @@ export default function AdminOrders() {
       )
   );
 
+  // Theme Colors
+  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-dark-surface text-white";
+  const inputBg = theme === "light" ? "bg-white text-black border-gray-300" : "bg-black text-white border-[#2c2c2c]";
+  const tabActive = theme === "light" ? "bg-primary text-black" : "bg-[#D3AD7F] text-black";
+  const tabInactive = theme === "light" ? "bg-white text-gray-600 hover:bg-gray-200" : "bg-dark-surface text-gray-400 hover:bg-[#222]";
+  const cardBg = theme === "light" ? "bg-white border-gray-200" : "bg-black border-[#2a2a2a]";
+  const cardText = theme === "light" ? "text-gray-900" : "text-white";
+  const subText = theme === "light" ? "text-gray-500" : "text-gray-400";
+
   return (
-    <div className="min-h-screen bg-dark text-white p-6 font-sans">
+    <div className={`min-h-screen p-6 font-sans transition-colors duration-300 ${bgMain}`}>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3 w-2/3">
+      <div className="flex justify-between items-center mb-6 flex-wrap">
+        <div className="flex items-center gap-3 w-full md:w-2/3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+            <Search className={`absolute left-3 top-2.5 ${subText}`} size={16} />
             <input
-              className="w-full pl-10 pr-3 py-2 rounded-md bg-black border border-[#2c2c2c] text-sm focus:outline-none"
+              className={`w-full pl-10 pr-3 py-2 rounded-md text-sm focus:outline-none ${inputBg}`}
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {/* Category Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-2 md:mt-0">
             {[
               { name: "All", icon: <LayoutGrid size={16} /> },
               { name: "Dessert", icon: <CakeSlice size={16} /> },
@@ -136,9 +146,7 @@ export default function AdminOrders() {
                 key={cat.name}
                 onClick={() => setCategory(cat.name)}
                 className={`flex items-center gap-1 px-3 py-2 rounded-md text-xs font-medium transition-all ${
-                  category === cat.name
-                    ? "bg-primary text-black"
-                    : "bg-black text-gray-400 hover:bg-[#222]"
+                  category === cat.name ? tabActive : tabInactive
                 }`}
               >
                 {cat.icon}
@@ -147,8 +155,8 @@ export default function AdminOrders() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-sm font-medium">
+        <div className="flex items-center gap-3 mt-2 md:mt-0">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${theme === "light" ? "bg-gray-300 text-black" : "bg-gray-700 text-white"}`}>
             <User size={16} />
           </div>
           <p className="text-sm text-gray-300">Admin1_resto</p>
@@ -161,11 +169,9 @@ export default function AdminOrders() {
         {orders.map((o) => (
           <button
             key={o.id}
-            onClick={() =>
-              setActiveTab(activeTab === o.id ? null : o.id)
-            }
+            onClick={() => setActiveTab(activeTab === o.id ? null : o.id)}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
-              activeTab === o.id ? "bg-primary text-black" : "bg-black text-gray-400"
+              activeTab === o.id ? tabActive : tabInactive
             }`}
           >
             #{o.id}
@@ -180,13 +186,13 @@ export default function AdminOrders() {
           .map((order) => (
             <div
               key={order.id}
-              className="bg-black rounded-xl p-4 shadow-lg border border-[#2a2a2a] hover:shadow-xl transition-all"
+              className={`rounded-xl p-4 shadow-lg border hover:shadow-xl transition-all ${cardBg}`}
             >
               {/* Top */}
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <p className="text-sm font-medium">Order #{order.id}</p>
-                  <p className="text-xs text-gray-400">{order.date}</p>
+                  <p className={`text-sm font-medium ${cardText}`}>Order #{order.id}</p>
+                  <p className={`text-xs ${subText}`}>{order.date}</p>
                 </div>
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${order.color}`}
@@ -204,9 +210,9 @@ export default function AdminOrders() {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div className="flex flex-col w-full">
-                    <p className="text-sm font-semibold">{item.name}</p>
-                    <p className="text-xs text-gray-400">{item.desc}</p>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <p className={`text-sm font-semibold ${cardText}`}>{item.name}</p>
+                    <p className={`text-xs ${subText}`}>{item.desc}</p>
+                    <div className={`flex justify-between text-xs mt-1 ${subText}`}>
                       <span>${item.price.toFixed(2)}</span>
                       <span>Qty: {item.qty}</span>
                     </div>
@@ -215,9 +221,9 @@ export default function AdminOrders() {
               ))}
 
               {/* Bottom */}
-              <hr className="border-gray-600 mb-2" />
+              <hr className={`border ${theme === "light" ? "border-gray-300" : "border-gray-600"} mb-2`} />
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4 text-xs text-gray-400">
+                <div className={`flex items-center gap-4 text-xs ${subText}`}>
                   <span>
                     {order.items.length} {order.items.length > 1 ? "Items" : "Item"}
                   </span>
@@ -259,4 +265,3 @@ export default function AdminOrders() {
     </div>
   );
 }
-

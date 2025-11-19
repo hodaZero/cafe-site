@@ -1,16 +1,25 @@
 import React from "react";
+import { useTheme } from "../context/ThemeContext";
 
 const TableCard = ({ table, selected }) => {
+  const { theme } = useTheme();
   const isSelected = selected === table.id;
+
+  const bg = isSelected
+    ? theme === "light" ? "bg-light-primary border-2 border-black" : "bg-dark-primary border-2 border-white"
+    : theme === "light" ? "bg-light-surface border border-light-inputBorder" : "bg-dark-surface border border-dark-inputBorder";
+
+  const textColor = isSelected
+    ? "text-black font-semibold"
+    : theme === "light"
+    ? "text-light-text"
+    : "text-dark-text";
+
+  const statusText = table.status === "available" ? "Available" : "Occupied";
 
   return (
     <div
-      className={`flex flex-col items-center p-4 rounded-2xl shadow-lg transition-transform transform hover:scale-105
-        ${
-          isSelected
-            ? "bg-[#5a3c1b] border-2 border-white cursor-pointer"
-            : "bg-black border border-primary cursor-pointer" 
-        }`}
+      className={`flex flex-col items-center p-4 rounded-2xl shadow-lg transition-transform transform hover:scale-105 cursor-pointer ${bg}`}
     >
       <div className="flex justify-center mb-3">
         <img
@@ -20,16 +29,12 @@ const TableCard = ({ table, selected }) => {
         />
       </div>
 
-      <h2 className="text-xl font-semibold text-white mb-1 text-center">
+      <h2 className={`text-xl font-semibold mb-1 text-center ${textColor}`}>
         Table {table.id}
       </h2>
 
-      <p
-        className={`text-lg font-medium ${
-          isSelected ? "text-white" : "text-white"
-        }`}
-      >
-        {isSelected ? "Selected" : table.status === "available" ? "Available" : "Occupied"}
+      <p className={`text-lg font-medium ${textColor}`}>
+        {isSelected ? "Selected" : statusText}
       </p>
     </div>
   );

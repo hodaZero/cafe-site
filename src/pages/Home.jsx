@@ -7,7 +7,7 @@ import ContactUs from "../components/ContactUs";
 import OurBlogs from "../components/OurBlogs";
 
 const Home = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
 
   const sections = [
     { Component: Hero },
@@ -18,14 +18,7 @@ const Home = () => {
   ];
 
   return (
-    <div className={theme === "light" ? "bg-white text-black" : "bg-dark text-white"}>
-      <button
-        onClick={toggleTheme}
-        className="p-2 m-4 border border-primary rounded-md text-primary hover:bg-primary/10 transition"
-      >
-        Toggle Theme
-      </button>
-
+    <div className={theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text"}>
       {sections.map(({ Component }, index) => (
         <motion.div
           key={index}
