@@ -20,35 +20,20 @@ const CheckoutPage = () => {
   const inputBg = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#2a2a2a] text-white placeholder-gray-400";
 
   return (
-    <div className={`min-h-screen py-12 px-4 flex flex-col items-center transition-colors duration-300 ${bgMain}`}>
-      <h1 className={`text-4xl font-bold mb-8 ${textPrimary}`}>Checkout</h1>
-
-      <div className={`w-full max-w-5xl rounded-3xl p-8 shadow-2xl flex flex-col gap-8 transition-colors duration-300 ${bgCard}`}>
-
-        {/* Order Items */}
-        <div className="flex flex-col gap-4">
-          <h2 className={`text-2xl font-bold mb-4 text-center ${textPrimary}`}>Your Order</h2>
-          {items.map(item => (
-            <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl shadow-md transition-colors duration-300 ${bgCard}`}>
-              <div className="flex items-center gap-4">
-                <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
-                <span className="font-semibold">{item.name}</span>
-              </div>
-              <span className={`font-bold ${textPrimary}`}>{item.price} EGP</span>
-            </div>
-          ))}
-        </div>
-
+    <div className={`min-h-screen py-12 px-4 flex justify-center transition-colors duration-300 ${bgMain}`}>
+      <div className="w-full max-w-7xl flex gap-8">
         {/* Shipping Details */}
-        <h2 className={`text-3xl font-bold mb-4 text-center ${textPrimary}`}>Enter Shipping Details</h2>
-        <div className="flex flex-col gap-4">
+        <div className="flex-[2] flex flex-col gap-6">
+          <h1 className={`text-4xl font-bold mb-4 ${textPrimary}`}>Checkout</h1>
+          <h2 className={`text-3xl font-bold mb-4 ${textPrimary}`}>Enter Shipping Details</h2>
+
           {[
             { icon: <FaUser />, placeholder: "Full Name", type: "text" },
             { icon: <FaEnvelope />, placeholder: "Email", type: "email" },
             { icon: <FaPhone />, placeholder: "Phone Number", type: "tel" },
             { icon: <FaMapMarkerAlt />, placeholder: "Shipping Address", type: "text" },
           ].map((field, idx) => (
-            <div key={idx} className={`flex items-center gap-3 p-4 rounded-xl shadow-md transition-colors duration-300 ${bgCard}`}>
+            <div key={idx} className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
               {React.cloneElement(field.icon, { className: textPrimary })}
               <input
                 type={field.type}
@@ -58,16 +43,29 @@ const CheckoutPage = () => {
             </div>
           ))}
 
-          <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md transition-colors duration-300 ${bgCard}`}>
+          <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
             <FaCreditCard className={textPrimary} />
             <select className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}>
               <option value="">Payment Method</option>
               <option value="cash">Cash <FaMoneyBillAlt className="inline ml-1" /></option>
               <option value="card">Card</option>
+              <option value="vodafone">Vodafone Cash</option>
             </select>
           </div>
+        </div>
 
-          {/* Total */}
+        {/* Your Order */}
+        <div className="flex-[1] rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
+          <h2 className={`text-3xl font-bold text-center ${textPrimary}`}>Your Order</h2>
+          {items.map(item => (
+            <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl shadow-md ${bgCard}`}>
+              <div className="flex items-center gap-4">
+                <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
+                <span className="font-semibold">{item.name}</span>
+              </div>
+              <span className={`font-bold ${textPrimary}`}>{item.price} EGP</span>
+            </div>
+          ))}
           <div className={`flex justify-between font-bold text-lg mt-4 ${textPrimary}`}>
             <span>Total</span>
             <span>{total} EGP</span>
