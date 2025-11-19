@@ -1,37 +1,35 @@
 import React, { useEffect, useState } from "react";
 import ProfileCard from "../components/ProfileCard";
-import OrderItem from "../components/OrderItem";
 import backgroundPic from "../assets/images/backgroundPic.jpg";
 import { auth } from "../firebase/firebaseConfig";
-import { getUserData } from "../firebase/auth";
+import { getUserData, logoutUser } from "../firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
-  const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (auth.currentUser) {
         const data = await getUserData(auth.currentUser.uid);
         setUserData(data);
-
-        // ممكن تجيبي الطلبات من Firestore بعد كده
-        // حاليًا هسيبها ثابتة للتجربة
-        setOrders([
-          { id: 12345, items: "2x Cappuccino, 1x Croissant", status: "Processing" },
-          { id: 12346, items: "1x Latte, 2x Donut", status: "Completed" },
-          { id: 12347, items: "1x Espresso", status: "Cancelled" },
-        ]);
       }
     };
 
     fetchUserData();
   }, []);
 
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate("/login");
+  };
+
   if (!userData) return <p className="text-white text-center mt-20">Loading...</p>;
 
   return (
     <div className="relative min-h-screen flex flex-col items-center py-12 overflow-hidden">
+      {/* الخلفية */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -39,37 +37,24 @@ const ProfilePage = () => {
           filter: "brightness(0.35)",
         }}
       ></div>
-
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      <div className="relative z-10 flex flex-col items-center w-full">
+      <div className="relative z-10 flex flex-col items-center w-full gap-6">
+        {/* البطاقة */}
         <ProfileCard
           name={userData.name}
           email={userData.email}
-          avatar="https://i.pravatar.cc/100" // ممكن تغيّريه لحقول في Firestore لو عندك avatar
+          avatar={userData.avatar || "https://i.pravatar.cc/100"}
         />
 
-        <div
-          className="rounded-2xl p-6 w-full max-w-3xl mt-6 shadow-lg backdrop-blur-md"
-          style={{
-            backgroundColor: "rgba(107, 79, 63, 0.12)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-          }}
-        >
-          <h3 className="text-2xl font-semibold mb-4 text-[#F8F5F2]">
-            My Orders
-          </h3>
-
-          <div className="space-y-3">
-            {orders.map((order) => (
-              <OrderItem
-                key={order.id}
-                id={order.id}
-                items={order.items}
-                status={order.status}
-              />
-            ))}
-          </div>
+        {/* زرار Logout بجانب البطاقة بشكل أفقي */}
+        <div className="flex justify-center w-full">
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 shadow-md transition"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>
