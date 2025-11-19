@@ -49,43 +49,71 @@ export default function Navbar() {
     </button>
   );
 
-  // Navigation links + buttons
+  // Navigation links + buttons  (✔ تم تعديل My Orders فقط)
   const renderLinks = () => (
     <>
-      {links.map((l) => (
-        <Link
-          key={l}
-          to={`/${l === "HOME" ? "" : l.toLowerCase()}`}
-          className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
-          onClick={() => setOpen(false)}
-        >
-          {l}
-        </Link>
-      ))}
+      <Link
+        to="/"
+        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
+        onClick={() => setOpen(false)}
+      >
+        HOME
+      </Link>
+
+      <Link
+        to="/about"
+        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
+        onClick={() => setOpen(false)}
+      >
+        ABOUT
+      </Link>
+
+      <Link
+        to="/orders"   // ✔ هنا التعديل الوحيد
+        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
+        onClick={() => setOpen(false)}
+      >
+        My Orders
+      </Link>
 
       {!user ? (
         <>
-          <Link to="/login" onClick={() => setOpen(false)} className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}>
+          <Link
+            to="/login"
+            onClick={() => setOpen(false)}
+            className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}
+          >
             Login
           </Link>
-          <Link to="/register" onClick={() => setOpen(false)} className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}>
+
+          <Link
+            to="/register"
+            onClick={() => setOpen(false)}
+            className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}
+          >
             Register
           </Link>
         </>
       ) : (
-        <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>Logout</button>
+        <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>
+          Logout
+        </button>
       )}
     </>
   );
 
-  // Icons section (used in desktop & mobile)
+  // Icons section (desktop + mobile)
   const renderIcons = () => (
     <>
       <IconButton Icon={Heart} count={favoritesCount} onClick={() => user ? navigate("/favorites") : navigate("/login")} />
       <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />
       {user && (
         <button onClick={() => navigate("/profile")}>
-          <img src={user.photoURL || "https://i.pravatar.cc/100"} alt="Profile" className={`h-8 w-8 rounded-full object-cover border-2 ${avatarBorder}`} />
+          <img
+            src={user.photoURL || "https://i.pravatar.cc/100"}
+            alt="Profile"
+            className={`h-8 w-8 rounded-full object-cover border-2 ${avatarBorder}`}
+          />
         </button>
       )}
       <ThemeToggle />
@@ -115,7 +143,9 @@ export default function Navbar() {
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
           <ThemeToggle />
-          <button onClick={() => setOpen(!open)} className="p-2">{open ? <X size={24} /> : <Menu size={24} />}</button>
+          <button onClick={() => setOpen(!open)} className="p-2">
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
