@@ -2,15 +2,18 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
 import { loginUser } from "../../firebase/auth";
+import { useTheme } from "..//../context/ThemeContext";
 
 const Login = () => {
+  const { theme } = useTheme();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate(); // <-- استخدمنا useNavigate
+  const navigate = useNavigate(); 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,14 +52,17 @@ const Login = () => {
     try {
       const user = await loginUser(formData.email, formData.password);
       console.log("User logged in:", user);
-
-      // بعد نجاح تسجيل الدخول، نذهب مباشرة إلى الصفحة الرئيسية
       navigate("/");
     } catch (err) {
       console.error(err.message);
       alert("Error: " + err.message);
     }
   };
+
+  // تحديد الألوان حسب التيم
+  const cardBg = theme === "light" ? "bg-light-surface bg-opacity-90 text-light-text" : "bg-dark-surface bg-opacity-90 text-dark-text";
+  const inputBorder = theme === "light" ? "border-light-inputBorder" : "border-dark-inputBorder";
+  const primaryBtn = theme === "light" ? "bg-light-primary hover:bg-light-primaryHover text-black" : "bg-dark-primary hover:bg-dark-primaryHover text-dark-text";
 
   return (
     <div className="min-h-screen relative flex items-center justify-center">
@@ -66,8 +72,8 @@ const Login = () => {
       ></div>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      <div className="relative z-10 bg-white bg-opacity-20 p-14 rounded-xl shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold mb-8 text-center text-white">
+      <div className={`relative z-10 p-14 rounded-xl shadow-xl w-full max-w-md transition-colors duration-300 ${cardBg}`}>
+        <h2 className="text-3xl font-bold mb-8 text-center">
           Login
         </h2>
 
@@ -79,7 +85,7 @@ const Login = () => {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-6 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-lg"
+              className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -93,7 +99,7 @@ const Login = () => {
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-6 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-lg"
+              className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -102,15 +108,15 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-primary text-white py-3 rounded-md hover:bg-opacity-90 transition text-lg font-semibold"
+            className={`w-full py-3 rounded-md transition text-lg font-semibold ${primaryBtn}`}
           >
             Login
           </button>
         </form>
 
-        <p className="text-center mt-6 text-white text-lg">
+        <p className="text-center mt-6 text-lg">
           Don't have an account?{" "}
-          <a href="/register" className="text-primary font-semibold">
+          <a href="/register" className={`font-semibold ${theme === "light" ? "text-light-primary" : "text-dark-primary"}`}>
             Register
           </a>
         </p>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Menu, X, Heart, ShoppingCart } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import logo from "../assets/images/coffee_logo.png";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from '../context/ThemeContext';
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase/firebaseConfig";
 import { logoutUser } from "../firebase/auth";
@@ -14,11 +14,9 @@ export default function Navbar() {
   const { theme } = useTheme();
   const [user, setUser] = useState(null);
 
-  // Counts from Redux, with safe default 0
   const favoritesCount = useSelector((state) => state.favorite.favorites?.length || 0);
   const cartCount = useSelector((state) => state.cart.items?.length || 0);
 
-  // Auth listener
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => setUser(currentUser));
     return () => unsubscribe();
@@ -29,72 +27,89 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  const links = ["HOME", "ABOUT"];
+  const links = ["HOME", "ABOUT", "My Orders"];
+
+  const headerClass = theme === "dark" ? "bg-dark-background/90 text-white shadow-md" : "bg-white text-black shadow";
+  const linkClass = theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary";
+  const buttonClass = theme === "dark"
+    ? "bg-dark-primary text-dark-text hover:bg-dark-primaryHover"
+    : "bg-light-primary text-white hover:bg-light-primaryHover";
+  const iconClass = theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary";
+  const avatarBorder = theme === "dark" ? "border-dark-primary" : "border-light-primary";
+
+  // Icon with badge helper
+  const IconButton = ({ Icon, count, onClick }) => (
+    <button onClick={onClick} className={`relative transition-colors duration-300 ${iconClass}`}>
+      <Icon size={24} />
+      {count > 0 && (
+        <span className="absolute -top-2 -right-2 rounded-full w-5 h-5 flex items-center justify-center bg-light-primary text-black dark:bg-dark-primary dark:text-dark-text text-xs">
+          {count}
+        </span>
+      )}
+    </button>
+  );
+
+  // Navigation links + buttons
+  const renderLinks = () => (
+    <>
+      {links.map((l) => (
+        <Link
+          key={l}
+          to={`/${l === "HOME" ? "" : l.toLowerCase()}`}
+          className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
+          onClick={() => setOpen(false)}
+        >
+          {l}
+        </Link>
+      ))}
+
+      {!user ? (
+        <>
+          <Link to="/login" onClick={() => setOpen(false)} className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}>
+            Login
+          </Link>
+          <Link to="/register" onClick={() => setOpen(false)} className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}>
+            Register
+          </Link>
+        </>
+      ) : (
+        <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>Logout</button>
+      )}
+    </>
+  );
+
+  // Icons section (used in desktop & mobile)
+  const renderIcons = () => (
+    <>
+      <IconButton Icon={Heart} count={favoritesCount} onClick={() => user ? navigate("/favorites") : navigate("/login")} />
+      <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />
+      {user && (
+        <button onClick={() => navigate("/profile")}>
+          <img src={user.photoURL || "https://i.pravatar.cc/100"} alt="Profile" className={`h-8 w-8 rounded-full object-cover border-2 ${avatarBorder}`} />
+        </button>
+      )}
+      <ThemeToggle />
+    </>
+  );
 
   return (
-    <header className={`fixed w-full z-50 transition-colors duration-300 ${theme === "dark" ? "bg-dark/90 shadow-md" : "bg-white shadow"}`}>
+    <header className={`fixed w-full z-50 transition-colors duration-300 ${headerClass}`}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="logo" className="h-8 w-8" />
-          <span className={`font-bold ${theme === "dark" ? "text-primary" : "text-black"}`}>CoffeeSite</span>
+          <span className="font-bold">CoffeeSite</span>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-4 items-center">
-          {links.map((l) => (
-            <Link
-              key={l}
-              to={`/${l === "HOME" ? "" : l.toLowerCase()}`}
-              className={`transition-colors duration-300 px-3 py-1 ${theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary"}`}
-            >
-              {l}
-            </Link>
-          ))}
-
-          {!user && (
-            <>
-              <Link to="/login" className="px-4 py-1 bg-white text-black rounded-md hover:bg-gray-200 transition">Login</Link>
-              <Link to="/register" className="px-4 py-1 bg-white text-black rounded-md hover:bg-gray-200 transition">Register</Link>
-            </>
-          )}
-
-          {user && (
-            <button onClick={handleLogout} className="px-4 py-1 bg-black text-white rounded-md hover:bg-gray-800 transition">Logout</button>
-          )}
+          {renderLinks()}
         </nav>
 
         {/* Desktop Icons */}
         <div className="hidden md:flex items-center gap-4">
-          {/* Favorites */}
-          <button
-            onClick={() => user ? navigate("/favorites") : navigate("/login")}
-            className={`relative transition-colors duration-300 ${theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary"}`}
-          >
-            <Heart size={24} />
-            {favoritesCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary text-black rounded-full text-xs w-5 h-5 flex items-center justify-center">{favoritesCount}</span>
-            )}
-          </button>
-
-          {/* Cart */}
-          <button
-            onClick={() => navigate("/cart")}
-            className={`relative transition-colors duration-300 ${theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary"}`}
-          >
-            <ShoppingCart size={24} />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary text-black rounded-full text-xs w-5 h-5 flex items-center justify-center">{cartCount}</span>
-            )}
-          </button>
-
-          <ThemeToggle />
-
-          {user && (
-            <button onClick={() => navigate("/profile")}>
-              <img src={user.photoURL || "https://i.pravatar.cc/100"} alt="Profile" className="h-8 w-8 rounded-full object-cover border-2 border-primary" />
-            </button>
-          )}
+          {renderIcons()}
         </div>
 
         {/* Mobile Menu Button */}
@@ -106,42 +121,13 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {open && (
-        <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark text-white" : "bg-white text-black"}`}>
-          {links.map((l) => (
-            <Link key={l} to={`/${l === "HOME" ? "" : l.toLowerCase()}`} onClick={() => setOpen(false)} className="block py-2 px-4 transition-colors duration-300 hover:bg-primary/20">{l}</Link>
-          ))}
-
-          {!user && (
-            <>
-              <Link to="/login" onClick={() => setOpen(false)} className="block py-2 px-4 bg-white text-black hover:bg-gray-200">Login</Link>
-              <Link to="/register" onClick={() => setOpen(false)} className="block py-2 px-4 bg-white text-black hover:bg-gray-200">Register</Link>
-            </>
-          )}
-
-          {user && (
-            <>
-              <button onClick={() => { handleLogout(); setOpen(false); }} className="block w-full text-left py-2 px-4 bg-black text-white hover:bg-gray-800 transition">Logout</button>
-              <div className="flex items-center justify-around py-2">
-                <button onClick={() => { setOpen(false); navigate("/favorites"); }} className={`relative transition-colors duration-300 ${theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary"}`}>
-                  <Heart size={24} />
-                  {favoritesCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-primary text-black rounded-full text-xs w-5 h-5 flex items-center justify-center">{favoritesCount}</span>
-                  )}
-                </button>
-
-                <button onClick={() => { setOpen(false); navigate("/cart"); }} className={`relative transition-colors duration-300 ${theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary"}`}>
-                  <ShoppingCart size={24} />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-primary text-black rounded-full text-xs w-5 h-5 flex items-center justify-center">{cartCount}</span>
-                  )}
-                </button>
-
-                <button onClick={() => { setOpen(false); navigate("/profile"); }}>
-                  <img src={user.photoURL || "https://i.pravatar.cc/100"} alt="Profile" className="h-8 w-8 rounded-full object-cover border-2 border-primary" />
-                </button>
-              </div>
-            </>
-          )}
+        <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}>
+          <div className="flex flex-col gap-2 py-2 px-4">
+            {renderLinks()}
+            <div className="flex items-center gap-4 mt-2">
+              {renderIcons()}
+            </div>
+          </div>
         </div>
       )}
     </header>

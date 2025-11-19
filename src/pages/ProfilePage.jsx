@@ -4,10 +4,12 @@ import backgroundPic from "../assets/images/backgroundPic.jpg";
 import { auth } from "../firebase/firebaseConfig";
 import { getUserData, logoutUser } from "../firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -25,33 +27,37 @@ const ProfilePage = () => {
     navigate("/login");
   };
 
-  if (!userData) return <p className="text-white text-center mt-20">Loading...</p>;
+  if (!userData) return <p className="text-light-text dark:text-dark-text text-center mt-20">Loading...</p>;
+
+  const pageBg = theme === "light" ? "bg-light-background" : "bg-dark-background";
+  const overlay = theme === "light" ? "bg-black/20" : "bg-black/40";
+  const logoutBtn = theme === "light" 
+    ? "bg-light-primary text-light-text hover:bg-light-primaryHover"
+    : "bg-dark-primary text-dark-text hover:bg-dark-primaryHover";
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center py-12 overflow-hidden">
-      {/* الخلفية */}
+    <div className={`relative min-h-screen flex flex-col items-center py-12 overflow-hidden ${pageBg}`}>
+    
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${backgroundPic})`,
-          filter: "brightness(0.35)",
+          filter: theme === "light" ? "brightness(0.8)" : "brightness(0.35)",
         }}
       ></div>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div className={`absolute inset-0 backdrop-blur-sm ${overlay}`}></div>
 
       <div className="relative z-10 flex flex-col items-center w-full gap-6">
-        {/* البطاقة */}
         <ProfileCard
           name={userData.name}
           email={userData.email}
           avatar={userData.avatar || "https://i.pravatar.cc/100"}
         />
 
-        {/* زرار Logout بجانب البطاقة بشكل أفقي */}
         <div className="flex justify-center w-full">
           <button
             onClick={handleLogout}
-            className="px-6 py-2 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 shadow-md transition"
+            className={`px-6 py-2 font-semibold rounded-lg shadow-md transition ${logoutBtn}`}
           >
             Logout
           </button>

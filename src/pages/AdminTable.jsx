@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import TableCard from "../components/TableCard"; // استخدمنا الكارد بتاعك
+import { useTheme } from "../context/ThemeContext";
 
 const AdminTables = () => {
+  const { theme } = useTheme();
   const [tables, setTables] = useState([
     { id: 1, status: "available", floor: "Upstairs", image: "" },
     { id: 2, status: "occupied", floor: "Upstairs", image: "" },
@@ -37,18 +39,25 @@ const AdminTables = () => {
     setTables([...tables, { id: newId, status: "available", floor, image: "" }]);
   };
 
+  // Theme Colors
+  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-dark text-white";
+  const floorTitle = theme === "light" ? "text-gray-900" : "text-white";
+  const buttonAccept = "bg-[#d3ad7f] text-black hover:bg-[#b38a5f]";
+  const buttonReject = "bg-[#a67c52] text-white hover:bg-[#8b6642]";
+  const buttonDelete = "bg-[#555] text-white hover:bg-[#777]";
+
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center py-12 px-6">
+    <div className={`min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
       <h1 className="text-4xl font-bold text-primary mb-8 text-center">Admin Tables</h1>
 
       {floors.map((floor) => (
         <div key={floor} className="w-full max-w-6xl mb-10">
-          <h2 className="text-2xl font-semibold text-white mb-4">{floor}</h2>
+          <h2 className={`text-2xl font-semibold mb-4 ${floorTitle}`}>{floor}</h2>
 
-          <div className="flex justify-center items-center gap-6 mb-6">
+          <div className="flex justify-center items-center gap-6 mb-6 flex-wrap">
             <button
               onClick={() => handleAddTable(floor)}
-              className="px-6 py-2 rounded-xl bg-[#d3ad7f] text-black font-semibold hover:bg-[#b38a5f] transition"
+              className={`px-6 py-2 rounded-xl font-semibold transition ${buttonAccept}`}
             >
               Add Table
             </button>
@@ -61,28 +70,28 @@ const AdminTables = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {tables
               .filter((table) => table.floor === floor)
               .map((table) => (
                 <div key={table.id}>
                   <TableCard table={table} selected={selectedTable} />
-                  <div className="flex gap-2 justify-center mt-2">
+                  <div className="flex gap-2 justify-center mt-2 flex-wrap">
                     <button
                       onClick={() => handleAccept(table.id)}
-                      className="px-3 py-1 rounded-md bg-[#d3ad7f] text-black font-semibold hover:bg-[#b38a5f] transition"
+                      className={`px-3 py-1 rounded-md font-semibold transition ${buttonAccept}`}
                     >
                       Accept
                     </button>
                     <button
                       onClick={() => handleReject(table.id)}
-                      className="px-3 py-1 rounded-md bg-[#a67c52] text-white font-semibold hover:bg-[#8b6642] transition"
+                      className={`px-3 py-1 rounded-md font-semibold transition ${buttonReject}`}
                     >
                       Reject
                     </button>
                     <button
                       onClick={() => handleDelete(table.id)}
-                      className="px-3 py-1 rounded-md bg-[#555] text-white font-semibold hover:bg-[#777] transition"
+                      className={`px-3 py-1 rounded-md font-semibold transition ${buttonDelete}`}
                     >
                       Delete
                     </button>
