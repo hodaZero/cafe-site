@@ -1,103 +1,240 @@
-import React from "react";
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCreditCard, FaMoneyBillAlt } from "react-icons/fa";
+// --- CHECKOUT PAGE (FINAL VERSION) ---
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCreditCard,
+} from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
+import { db, auth } from "../firebase/firebaseConfig";
+import {
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  getDocs,
+} from "firebase/firestore";
 
 const CheckoutPage = () => {
   const { theme } = useTheme();
+  const { state } = useLocation();
+  const navigate = useNavigate();
 
-  const items = [
-    { id: 1, name: "Caramel Latte", price: 65, image: "https://images.unsplash.com/photo-1600271886369-6f7f6b7c8d3e?w=600&q=80" },
-    { id: 2, name: "Chocolate Cake Slice", price: 45, image: "https://images.unsplash.com/photo-1605475128023-9a6e72bbfbae?w=600&q=80" },
-    { id: 3, name: "Cappuccino", price: 60, image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=80" },
-    { id: 4, name: "Cheesecake", price: 55, image: "https://images.unsplash.com/photo-1601972599720-b6f64f42ecb1?w=600&q=80" },
-  ];
+  const items = state?.items || [];
+  const total = state?.total || 0;
 
-  const total = items.reduce((sum, item) => sum + item.price, 0);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    payment: "",
+  });
 
-  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900 " : "bg-[#0f0f0f] text-white";
-  const bgCard = theme === "light" ? "bg-white text-gray-900 shadow shadow-gray-300" : "text-dark-primary text-dark-text bg-[#1a1a1a]";
-  const textPrimary = theme === "light" ? "text-dark-primary" : "text-dark-primary";
-  const inputBg = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#2a2a2a] text-white placeholder-gray-400";
-const buttonClass =
+  const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = "Full Name is required.";
+    if (!form.phone.trim()) newErrors.phone = "Phone Number is required.";
+    if (!form.address.trim()) newErrors.address = "Address is required.";
+    if (!form.payment) newErrors.payment = "Select a payment method.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!validate()) return;
+
+    const user = auth.currentUser;
+    if (!user) return alert("You must be logged in.");
+
+    try {
+      await addDoc(collection(db, "users", user.uid, "orders"), {
+        userId: user.uid,
+        customerName: form.name,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        payment: form.payment,
+        items,
+        total,
+        status: "pending",
+        createdAt: new Date(),
+      });
+
+      // Empty Cart
+      const cartSnapshot = await getDocs(
+        collection(db, "users", user.uid, "cart")
+      );
+      const deletePromises = cartSnapshot.docs.map((d) =>
+        deleteDoc(doc(db, "users", user.uid, "cart", d.id))
+      );
+      await Promise.all(deletePromises);
+
+      setSuccess("Order placed successfully!");
+
+      setTimeout(() => {
+        navigate("/orders");
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setSuccess("Error placing order. Try again.");
+    }
+  };
+
+  const bgMain =
+    theme === "light"
+      ? "bg-gray-100 text-gray-900"
+      : "bg-[#0f0f0f] text-white";
+
+  const bgCard =
+    theme === "light"
+      ? "bg-white text-gray-900 shadow-lg"
+      : "bg-[#1a1a1a] text-white shadow-lg";
+
+  const inputBg =
+    theme === "light"
+      ? "bg-gray-100 text-gray-900"
+      : "bg-[#2a2a2a] text-white placeholder-gray-400";
+
+  const buttonClass =
     theme === "dark"
       ? "bg-dark-primary text-dark-text hover:bg-dark-primaryHover"
       : "bg-light-primary text-white hover:bg-light-primaryHover";
 
   return (
-    <div className={`pt-16 min-h-screen py-12 px-4 flex flex-col items-center transition-colors duration-300 ${bgMain}`}>
-      <h1 className={`text-4xl font-bold mb-8 ${textPrimary}`}>Checkout</h1>
+    <div className={`pt-16 min-h-screen py-12 px-6 flex flex-col items-center ${bgMain}`}>
+      <h1 className="text-4xl font-bold mb-10 text-dark-primary">Checkout</h1>
 
-      <div className={`w-full max-w-5xl rounded-3xl p-8 shadow-2xl flex flex-col gap-8 transition-colors duration-300 ${bgCard}`}>
-
+      <div className={`w-full max-w-6xl rounded-3xl p-10 flex flex-col gap-12 ${bgCard}`}>
         {/* Order Items */}
-        <div className="flex flex-col gap-4">
-          <h2 className={`text-2xl font-bold mb-4 text-center ${textPrimary}`}>Your Order</h2>
-          {items.map(item => (
-            <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl shadow-md transition-colors duration-300 ${bgCard}`}>
-              <div className="flex items-center gap-4">
-                <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
-                <span className="font-semibold">{item.name}</span>
+        <div>
+          <h2 className="text-3xl font-bold mb-6 text-dark-primary">Your Order</h2>
+
+          <div className="flex flex-col gap-5">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className={`flex items-center justify-between p-4 rounded-xl shadow-md ${bgCard}`}
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-20 h-20 object-cover rounded-xl"
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-lg">{item.name}</span>
+                    <span className="font-bold opacity-80">{item.price} EGP</span>
+                    <span className="text-sm opacity-70">
+                      Qty: {item.quantity || 1}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <span className={`font-bold ${textPrimary}`}>{item.price} EGP</span>
-            </div>
-          ))}
-        </div>
-    {/* <div className={`min-h-screen py-12 px-4 flex justify-center transition-colors duration-300 ${bgMain}`}>
-      <div className="w-full max-w-7xl flex gap-8"> */}
-        {/* Shipping Details */}
-        <div className="flex-[2] flex flex-col gap-6">
-          <h1 className={`text-4xl font-bold mb-4 ${textPrimary}`}>Checkout</h1>
-          <h2 className={`text-3xl font-bold mb-4 ${textPrimary}`}>Enter Shipping Details</h2>
+            ))}
 
-          {[
-            { icon: <FaUser />, placeholder: "Full Name", type: "text" },
-            { icon: <FaEnvelope />, placeholder: "Email", type: "email" },
-            { icon: <FaPhone />, placeholder: "Phone Number", type: "tel" },
-            { icon: <FaMapMarkerAlt />, placeholder: "Shipping Address", type: "text" },
-          ].map((field, idx) => (
-            <div key={idx} className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
-              {React.cloneElement(field.icon, { className: textPrimary })}
-              <input
-                type={field.type}
-                placeholder={field.placeholder}
-                className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
-              />
-            </div>
-          ))}
-
-          <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
-            <FaCreditCard className={textPrimary} />
-            <select className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}>
-              <option value="">Payment Method</option>
-              <option value="cash">Cash <FaMoneyBillAlt className="inline ml-1" /></option>
-              <option value="card">Card</option>
-              <option value="vodafone">Vodafone Cash</option>
-            </select>
+            {items.length === 0 && (
+              <p className="text-center opacity-70 text-lg">Your order is empty.</p>
+            )}
           </div>
         </div>
 
-        {/* Your Order */}
-        <div className="flex-[1] rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
-          <h2 className={`text-3xl font-bold text-center ${textPrimary}`}>Your Order</h2>
-          {items.map(item => (
-            <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl shadow-md ${bgCard}`}>
-              <div className="flex items-center gap-4">
-                <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
-                <span className="font-semibold">{item.name}</span>
+        {/* Shipping */}
+        <div className="flex flex-col gap-6">
+          <h2 className="text-3xl font-bold mb-2 text-dark-primary">
+            Enter Shipping Details
+          </h2>
+
+          {/* Fields */}
+          {[
+            { icon: <FaUser />, name: "name", placeholder: "Full Name" },
+            { icon: <FaEnvelope />, name: "email", placeholder: "Email" },
+            { icon: <FaPhone />, name: "phone", placeholder: "Phone Number" },
+            {
+              icon: <FaMapMarkerAlt />,
+              name: "address",
+              placeholder: "Shipping Address",
+            },
+          ].map((f, i) => (
+            <div key={i}>
+              <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
+                {f.icon}
+                <input
+                  name={f.name}
+                  value={form[f.name]}
+                  placeholder={f.placeholder}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
+                />
               </div>
-              <span className={`font-bold ${textPrimary}`}>{item.price} EGP</span>
+              {errors[f.name] && (
+                <span className="text-red-500 text-sm ml-4">{errors[f.name]}</span>
+              )}
             </div>
           ))}
-          <div className={`flex justify-between font-bold text-lg mt-4 ${textPrimary}`}>
+
+          {/* Payment */}
+          <div>
+            <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
+              <FaCreditCard />
+              <select
+                name="payment"
+                value={form.payment}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
+              >
+                <option value="">Payment Method</option>
+                <option value="cash">Cash</option>
+                <option value="card">Credit Card</option>
+                <option value="vodafone">Vodafone Cash</option>
+              </select>
+            </div>
+
+            {errors.payment && (
+              <span className="text-red-500 text-sm ml-4">{errors.payment}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Summary */}
+        <div className={`rounded-3xl p-6 shadow-xl flex flex-col gap-6 ${bgCard}`}>
+          <h2 className="text-3xl font-bold text-center text-dark-primary">
+            Order Summary
+          </h2>
+
+          {items.map((item) => (
+            <div key={item.id} className="flex justify-between opacity-90">
+              <span>{item.name}</span>
+              <span>{item.price} EGP</span>
+            </div>
+          ))}
+
+          <div className="flex justify-between font-bold text-lg border-t pt-4 text-dark-primary">
             <span>Total</span>
             <span>{total} EGP</span>
           </div>
 
+          {success && (
+            <p className="text-green-500 text-center font-semibold">{success}</p>
+          )}
+
           <button
-      className={`mt-4 w-full font-bold py-4 rounded-2xl transition-all shadow-lg ${buttonClass}`}
-    >
-      Confirm Payment
-    </button>
+            onClick={handlePlaceOrder}
+            className={`mt-4 w-full font-bold py-4 rounded-2xl shadow-lg ${buttonClass}`}
+          >
+            Confirm Order
+          </button>
         </div>
       </div>
     </div>
