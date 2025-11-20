@@ -26,13 +26,12 @@ const defaultImages = {
     "https://images.unsplash.com/photo-1617196030786-5f2b9f9a2b0f?w=50&h=50&fit=crop",
 };
 
-const OrderItem = ({ id, items, status, image }) => {
+const OrderItem = ({ order }) => {
   const { theme } = useTheme();
-  const styleClass = statusStyles(theme)[status.toLowerCase()] || statusStyles(theme).processing;
+  const styleClass = statusStyles(theme)[order.status.toLowerCase()] || statusStyles(theme).processing;
 
-  const firstItem = items.split(",")[0].trim().split(" ")[1];
-  const orderImage =
-    image || defaultImages[firstItem] || defaultImages["Cappuccino"];
+  const firstItemName = order.items[0]?.name || "Cappuccino";
+  const orderImage = defaultImages[firstItemName] || defaultImages["Cappuccino"];
 
   const bgClass = theme === "light"
     ? "bg-light-surface/70 border border-[#D1D5DB]/30"
@@ -42,27 +41,19 @@ const OrderItem = ({ id, items, status, image }) => {
   const textSecondary = theme === "light" ? "text-light-heading/80" : "text-dark-text/80";
   const borderColor = theme === "light" ? "border-[#D3AD7F]" : "border-[#D3AD7F]";
 
-  return (
-    <div
-      className={`flex justify-between items-center rounded-xl px-4 py-3 mb-3 shadow-md backdrop-blur-md ${bgClass}`}
-    >
-      <div className="flex items-center space-x-4">
-        <img
-          src={orderImage}
-          alt={`Order ${id}`}
-          className={`w-12 h-12 rounded-full object-cover border-2 ${borderColor}`}
-        />
+  const itemsText = order.items.map(item => `${item.quantity || 1}x ${item.name}`).join(", ");
 
+  return (
+    <div className={`flex justify-between items-center rounded-xl px-4 py-3 mb-3 shadow-md backdrop-blur-md ${bgClass}`}>
+      <div className="flex items-center space-x-4">
+        <img src={orderImage} alt={`Order ${order.id}`} className={`w-12 h-12 rounded-full object-cover border-2 ${borderColor}`} />
         <div>
-          <p className={`font-semibold ${textPrimary}`}>Order #{id}</p>
-          <p className={`text-sm ${textSecondary}`}>{items}</p>
+          <p className={`font-semibold ${textPrimary}`}>Order #{order.id}</p>
+          <p className={`text-sm ${textSecondary}`}>{itemsText}</p>
         </div>
       </div>
-
-      <span
-        className={`px-3 py-1 rounded-full text-sm font-semibold ${styleClass}`}
-      >
-        {status}
+      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${styleClass}`}>
+        {order.status}
       </span>
     </div>
   );
