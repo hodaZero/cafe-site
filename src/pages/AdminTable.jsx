@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import TableCard from "../components/TableCard"; // استخدمنا الكارد بتاعك
+import TableCard from "../components/TableCard";
 import { useTheme } from "../context/ThemeContext";
 
 const AdminTables = () => {
@@ -47,7 +47,7 @@ const AdminTables = () => {
   const buttonDelete = "bg-[#555] text-white hover:bg-[#777]";
 
   return (
-    <div className={`min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
+    <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
       <h1 className="text-4xl font-bold text-primary mb-8 text-center">Admin Tables</h1>
 
       {floors.map((floor) => (

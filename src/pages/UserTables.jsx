@@ -24,7 +24,7 @@ const UserTables = () => {
   const primaryBtn = theme === "light" ? "bg-light-primary hover:bg-light-primaryHover text-black" : "bg-dark-primary hover:bg-dark-primaryHover text-dark-text";
 
   return (
-    <div className={`min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
+    <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
       <h1 className={`text-4xl font-bold mb-12 text-center ${headingColor}`}>
         Select Your Table
       </h1>

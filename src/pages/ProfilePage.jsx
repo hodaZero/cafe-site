@@ -27,7 +27,7 @@ const ProfilePage = () => {
     navigate("/login");
   };
 
-  if (!userData) return <p className="text-light-text dark:text-dark-text text-center mt-20">Loading...</p>;
+  if (!userData) return <p className="pt-16 text-light-text dark:text-dark-text text-center mt-20">Loading...</p>;
 
   const pageBg = theme === "light" ? "bg-light-background" : "bg-dark-background";
   const overlay = theme === "light" ? "bg-black/20" : "bg-black/40";
@@ -36,7 +36,7 @@ const ProfilePage = () => {
     : "bg-dark-primary text-dark-text hover:bg-dark-primaryHover";
 
   return (
-    <div className={`relative min-h-screen flex flex-col items-center py-12 overflow-hidden ${pageBg}`}>
+    <div className={`pt-16 relative min-h-screen flex flex-col items-center py-12 overflow-hidden ${pageBg}`}>
     
       <div
         className="absolute inset-0 bg-cover bg-center"
