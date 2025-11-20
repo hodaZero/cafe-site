@@ -7,6 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase/firebaseConfig";
 import { logoutUser } from "../firebase/auth";
 import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
+
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -26,8 +28,6 @@ export default function Navbar() {
     await logoutUser();
     navigate("/login");
   };
-
-  const links = ["HOME", "ABOUT", "My Orders"];
 
   const headerClass = theme === "dark" ? "bg-dark-background/90 text-white shadow-md" : "bg-white text-black shadow";
   const linkClass = theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary";
@@ -61,11 +61,11 @@ export default function Navbar() {
       </Link>
 
       <Link
-        to="/about"
+        to="/menu"
         className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
         onClick={() => setOpen(false)}
       >
-        ABOUT
+        MENU
       </Link>
 
       <Link
@@ -86,13 +86,6 @@ export default function Navbar() {
             Login
           </Link>
 
-          <Link
-            to="/register"
-            onClick={() => setOpen(false)}
-            className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}
-          >
-            Register
-          </Link>
         </>
       ) : (
         <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>
@@ -107,7 +100,8 @@ export default function Navbar() {
     <>
       <IconButton Icon={Heart} count={favoritesCount} onClick={() => user ? navigate("/favorites") : navigate("/login")} />
       <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />
-      {user && (
+      <ThemeToggle />
+       {user && (
         <button onClick={() => navigate("/profile")}>
           <img
             src={user.photoURL || "https://i.pravatar.cc/100"}
@@ -116,7 +110,6 @@ export default function Navbar() {
           />
         </button>
       )}
-      <ThemeToggle />
     </>
   );
 
@@ -125,11 +118,30 @@ export default function Navbar() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="logo" className="h-8 w-8" />
-          <span className="font-bold">CoffeeSite</span>
-        </Link>
+        <Link to="/" className="flex items-center gap-3">
+  <motion.img
+    src={logo}
+    alt="logo"
+    className="h-12 w-12 rounded-xl shadow-md"
+    initial={{ scale: 0, rotate: -20, opacity: 0 }}
+    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    whileHover={{ scale: 1.1, rotate: 3 }}
+  />
 
+ <motion.span
+  className="text-3xl font-bold"
+  style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px"}}
+  initial={{ x: -15, opacity: 0 }}
+  animate={{ x: 0, opacity: 1 }}
+  transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+  whileHover={{ scale: 1.05 }}
+>
+ <motion.span className="text-light-primary"> D</motion.span>
+  omi <motion.span className="text-light-primary">C</motion.span>afe
+</motion.span>
+
+</Link>
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-4 items-center">
           {renderLinks()}

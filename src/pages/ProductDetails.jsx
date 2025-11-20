@@ -48,7 +48,6 @@ const ProductDetails = () => {
     );
   }
 
-  // تحديد الألوان حسب التيم
   const bgMain = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
   const primary = theme === "light" ? "text-light-primary" : "text-dark-primary";
   const primaryHover = theme === "light" ? "hover:text-light-primaryHover" : "hover:text-dark-primaryHover";
@@ -56,7 +55,7 @@ const ProductDetails = () => {
   const buttonBg = theme === "light" ? "bg-light-primary hover:bg-light-primaryHover text-black" : "bg-dark-primary hover:bg-dark-primaryHover text-dark-text";
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center px-6 relative transition-colors duration-300 ${bgMain}`}>
+    <div className={`pt-16 min-h-screen flex flex-col items-center justify-center px-6 relative transition-colors duration-300 ${bgMain}`}>
       <button
         onClick={() => navigate(-1)}
         className={`absolute top-6 left-6 ${primary} ${primaryHover} transition-colors`}

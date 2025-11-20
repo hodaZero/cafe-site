@@ -18,7 +18,7 @@ const Home = () => {
   ];
 
   return (
-    <div className={theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text"}>
+    <div className={`pt-16${theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text"}`}>
       {sections.map(({ Component }, index) => (
         <motion.div
           key={index}

@@ -123,7 +123,7 @@ export default function AdminOrders() {
   const subText = theme === "light" ? "text-gray-500" : "text-gray-400";
 
   return (
-    <div className={`min-h-screen p-6 font-sans transition-colors duration-300 ${bgMain}`}>
+    <div className={`pt-16 min-h-screen p-6 font-sans transition-colors duration-300 ${bgMain}`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6 flex-wrap">
         <div className="flex items-center gap-3 w-full md:w-2/3">

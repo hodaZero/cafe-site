@@ -14,13 +14,17 @@ const CheckoutPage = () => {
 
   const total = items.reduce((sum, item) => sum + item.price, 0);
 
-  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
-  const bgCard = theme === "light" ? "bg-white text-gray-900" : "bg-[#1a1a1a] text-white";
-  const textPrimary = theme === "light" ? "text-primary" : "text-amber-500";
+  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900 " : "bg-[#0f0f0f] text-white";
+  const bgCard = theme === "light" ? "bg-white text-gray-900 shadow shadow-gray-300" : "text-dark-primary text-dark-text bg-[#1a1a1a]";
+  const textPrimary = theme === "light" ? "text-dark-primary" : "text-dark-primary";
   const inputBg = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#2a2a2a] text-white placeholder-gray-400";
+const buttonClass =
+    theme === "dark"
+      ? "bg-dark-primary text-dark-text hover:bg-dark-primaryHover"
+      : "bg-light-primary text-white hover:bg-light-primaryHover";
 
   return (
-    <div className={`min-h-screen py-12 px-4 flex flex-col items-center transition-colors duration-300 ${bgMain}`}>
+    <div className={`pt-16 min-h-screen py-12 px-4 flex flex-col items-center transition-colors duration-300 ${bgMain}`}>
       <h1 className={`text-4xl font-bold mb-8 ${textPrimary}`}>Checkout</h1>
 
       <div className={`w-full max-w-5xl rounded-3xl p-8 shadow-2xl flex flex-col gap-8 transition-colors duration-300 ${bgCard}`}>
@@ -73,9 +77,11 @@ const CheckoutPage = () => {
             <span>{total} EGP</span>
           </div>
 
-          <button className="mt-4 w-full bg-amber-500 text-black font-bold py-4 rounded-2xl hover:bg-amber-600 transition-all shadow-lg">
-            Confirm Payment
-          </button>
+          <button
+      className={`mt-4 w-full font-bold py-4 rounded-2xl transition-all shadow-lg ${buttonClass}`}
+    >
+      Confirm Payment
+    </button>
         </div>
       </div>
     </div>

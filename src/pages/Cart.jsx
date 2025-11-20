@@ -42,7 +42,7 @@ const CartPage = () => {
 
   if (loading)
     return (
-      <div className={`min-h-screen flex justify-center items-center ${bgMain}`}>
+      <div className={`pt-16 min-h-screen flex justify-center items-center ${bgMain}`}>
         <p className="text-xl">Loading...</p>
       </div>
     );
@@ -55,7 +55,7 @@ const CartPage = () => {
     );
 
   return (
-    <div className={`min-h-screen py-12 px-4 sm:px-12 transition-colors duration-300 ${bgMain}`}>
+    <div className={` pt-16 min-h-screen py-12 px-4 sm:px-12 transition-colors duration-300 ${bgMain}`}>
       <h1 className={`text-4xl font-bold mb-12 text-center ${textPrimary}`}>Domi Café Cart</h1>
 
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10">

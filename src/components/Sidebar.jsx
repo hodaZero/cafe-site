@@ -1,7 +1,9 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-
+import { motion } from "framer-motion";
+import logo from "../assets/images/coffee_logo.png";
+import ThemeToggle from "./ThemeToggle";
 export default function Sidebar() {
   const { pathname } = useLocation();
   const { theme } = useTheme();
@@ -23,8 +25,34 @@ export default function Sidebar() {
   return (
     <div className={`w-64 ${sidebarBg} border-r p-4 min-h-screen`}>
       <div className="text-center mb-6">
-        <h2 className={`text-2xl font-bold ${titleColor}`}>Dashboard</h2>
-      </div>
+
+        {/* Logo */}
+        <div className="flex items-center gap-1">
+  <motion.img
+    src={logo}
+    alt="logo"
+    className="h-8 w-8 rounded-xl shadow-md"
+    initial={{ scale: 0, rotate: -20, opacity: 0 }}
+    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    whileHover={{ scale: 1.1, rotate: 3 }}
+  />
+
+ <motion.span
+  className="text-2xl font-bold"
+  style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px"}}
+  initial={{ x: -15, opacity: 0 }}
+  animate={{ x: 0, opacity: 1 }}
+  transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+  whileHover={{ scale: 1.05 }}
+>
+ <motion.span className="text-light-primary"> D</motion.span>
+  omi <motion.span className="text-light-primary">C</motion.span>afe
+</motion.span>
+<ThemeToggle />
+</div>    
+ 
+  </div>
       <ul className="space-y-3">
         {links.map((l) => (
           <li key={l.path}>
