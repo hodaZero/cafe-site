@@ -2,27 +2,34 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 
-// الحالة الأولية
+// ================================
+// Initial State
+// ================================
 const initialState = {
   favorites: [],
   loading: false,
   error: null,
 };
 
-// ------------------------
-// Fetch user favorites
-// ------------------------
+// ================================
+// Fetch Favorites
+// ================================
 export const fetchFavorites = createAsyncThunk(
   "favorite/fetchFavorites",
   async (_, { rejectWithValue }) => {
     try {
       const uid = auth.currentUser?.uid;
       if (!uid) return [];
+
       const favRef = collection(db, "users", uid, "favorites");
       const snapshot = await getDocs(favRef);
 
-      // تأكد من عدم وجود duplicates عند fetch
-      const fetched = snapshot.docs.map((d) => ({ firebaseId: d.id, ...d.data() }));
+      const fetched = snapshot.docs.map((d) => ({
+        firebaseId: d.id,
+        ...d.data(),
+      }));
+
+      // 🔥 منع أي duplicate نهائياً
       const unique = [];
       fetched.forEach((item) => {
         if (!unique.find((u) => u.productId === item.productId)) {
@@ -37,9 +44,9 @@ export const fetchFavorites = createAsyncThunk(
   }
 );
 
-// ------------------------
-// Add / Remove Favorite
-// ------------------------
+// ================================
+// Toggle Favorite
+// ================================
 export const toggleFavorite = createAsyncThunk(
   "favorite/toggleFavorite",
   async (product, { getState, rejectWithValue }) => {
@@ -47,22 +54,23 @@ export const toggleFavorite = createAsyncThunk(
       const uid = auth.currentUser?.uid;
       if (!uid) return rejectWithValue("User not logged in");
 
+      const productId = product.productId || product.id;
       const favRef = collection(db, "users", uid, "favorites");
 
-      // تحقق إذا المنتج موجود مسبقًا
-      const existing = getState().favorite.favorites.find(
-        (p) => p.productId === product.id
-      );
+      const state = getState().favorite.favorites;
+
+      const existing = state.find((p) => p.productId === productId);
 
       if (existing) {
-        // إزالة من Firebase
+        // حذف
         const docRef = doc(db, "users", uid, "favorites", existing.firebaseId);
         await deleteDoc(docRef);
-        return { productId: product.id, removed: true };
+
+        return { productId, removed: true };
       } else {
-        // إضافة للفيفوريت
+        // إضافة
         const docRef = await addDoc(favRef, {
-          productId: product.id,
+          productId,
           name: product.name,
           image: product.image,
           price: product.price,
@@ -71,11 +79,12 @@ export const toggleFavorite = createAsyncThunk(
 
         return {
           firebaseId: docRef.id,
-          productId: product.id,
+          productId,
           name: product.name,
           image: product.image,
           price: product.price,
           rating: product.rating,
+          added: true,
         };
       }
     } catch (err) {
@@ -84,22 +93,21 @@ export const toggleFavorite = createAsyncThunk(
   }
 );
 
-// ------------------------
+// ================================
 // Slice
-// ------------------------
+// ================================
 const favoriteSlice = createSlice({
   name: "favorite",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch
+      // ---------------- FETCH ----------------
       .addCase(fetchFavorites.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchFavorites.fulfilled, (state, action) => {
         state.loading = false;
-        // استبدال كامل لتجنب duplicates
         state.favorites = action.payload;
       })
       .addCase(fetchFavorites.rejected, (state, action) => {
@@ -107,18 +115,25 @@ const favoriteSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Toggle
+      // ---------------- TOGGLE ----------------
       .addCase(toggleFavorite.fulfilled, (state, action) => {
+        // 🧨 حذف
         if (action.payload.removed) {
           state.favorites = state.favorites.filter(
             (p) => p.productId !== action.payload.productId
           );
-        } else {
-          // إضافة فقط لو مش موجود
+        }
+
+        // ⭐ إضافة بدون تكرار
+        if (action.payload.added) {
           const exists = state.favorites.find(
             (p) => p.productId === action.payload.productId
           );
-          if (!exists) state.favorites.push(action.payload);
+
+          // 🔥 الحل الحقيقي لمشكلة "المنتجين يبقوا 3"
+          if (!exists) {
+            state.favorites.push(action.payload);
+          }
         }
       });
   },
