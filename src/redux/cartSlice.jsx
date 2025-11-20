@@ -1,3 +1,4 @@
+// redux/cartSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
@@ -17,14 +18,22 @@ export const fetchCart = createAsyncThunk(
       if (!uid) return [];
       const cartRef = collection(db, "users", uid, "cart");
       const snapshot = await getDocs(cartRef);
-      return snapshot.docs.map(d => ({ firebaseId: d.id, ...d.data() }));
+
+      // إزالة duplicates
+      const fetched = snapshot.docs.map(d => ({ firebaseId: d.id, ...d.data() }));
+      const unique = [];
+      fetched.forEach(item => {
+        if (!unique.find(u => u.productId === item.productId)) unique.push(item);
+      });
+
+      return unique;
     } catch (err) {
       return rejectWithValue(err.message);
     }
   }
 );
 
-// Add or increase quantity
+// Add / Update cart item
 export const toggleCartItem = createAsyncThunk(
   "cart/toggleCartItem",
   async ({ product, quantity = 1 }, { getState, rejectWithValue }) => {
@@ -32,23 +41,24 @@ export const toggleCartItem = createAsyncThunk(
       const uid = auth.currentUser?.uid;
       if (!uid) return rejectWithValue("User not logged in");
 
-      const existing = getState().cart.items.find(i => i.productId === product.id);
+      const productId = product.id || product.productId;
+      const existing = getState().cart.items.find(i => i.productId === productId);
       const cartRef = collection(db, "users", uid, "cart");
 
       if (existing) {
         const docRef = doc(db, "users", uid, "cart", existing.firebaseId);
         const newQty = existing.quantity + quantity;
         await updateDoc(docRef, { quantity: newQty });
-        return { firebaseId: existing.firebaseId, productId: product.id, quantity: newQty };
+        return { firebaseId: existing.firebaseId, productId, quantity: newQty };
       } else {
         const docRef = await addDoc(cartRef, {
-          productId: product.id,
+          productId,
           name: product.name,
           image: product.image,
           price: product.price,
           quantity,
         });
-        return { firebaseId: docRef.id, productId: product.id, name: product.name, image: product.image, price: product.price, quantity };
+        return { firebaseId: docRef.id, productId, name: product.name, image: product.image, price: product.price, quantity };
       }
     } catch (err) {
       return rejectWithValue(err.message);
