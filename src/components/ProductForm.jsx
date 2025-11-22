@@ -1,14 +1,39 @@
 import React, { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { uploadImage } from "../sevices/storage_sevices";
 
 export default function ProductForm({ form, setForm, onSubmit, categories, loading }) {
   const { theme } = useTheme();
   const [errors, setErrors] = useState({});
-
+  const [preview, setPreview] = useState(form.image || null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+    const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
+    const preview = URL.createObjectURL(file);
+    setForm({ ...form, image: preview });
+ await onSubmit();
+    setUploadingImage(true);
+    try {
+      const url = await uploadImage("domi_cafe", file); 
+      setForm({ ...form, image: url });
+    } catch (err) {
+      console.error("Error uploading image:", err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
   const validate = () => {
     const newErrors = {};
     if (!form.name || form.name.trim().length < 2) newErrors.name = "Name is required (min 2 characters)";
@@ -62,10 +87,10 @@ export default function ProductForm({ form, setForm, onSubmit, categories, loadi
           />
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
-
+<div className="col-span-1 md:col-span-2 flex items-start gap-4 ">
         {/* Category */}
         <div>
-          <label className="block mb-1 font-medium">Category</label>
+          <label className="block mb-1 font-medium flex-1">Category</label>
           <select
             name="category"
             value={form.category}
@@ -80,18 +105,19 @@ export default function ProductForm({ form, setForm, onSubmit, categories, loadi
           {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
         </div>
 
-        {/* Image URL */}
-        <div>
-          <label className="block mb-1 font-medium">Image URL</label>
-          <input
-            name="image"
-            value={form.image}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className={`w-full p-3 rounded-lg border ${inputBg} focus:outline-none focus:ring-2 focus:ring-primary`}
-          />
-          {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image}</p>}
-        </div>
+       {/* Image Upload */}
+<div className="col-span-1 md:col-span-2 flex flex-col items-center gap-2 w-fit mx-auto">
+  <label className="block font-medium mb-1 ">Product Image</label>
+  
+  <label className={`p-3 rounded-lg border cursor-pointer text-center ${inputBg}`}>
+    {selectedFile ? "Change Image" : "Upload Image"}
+    <input type="file" accept="image/*" className="hidden " onChange={handleFileChange} />
+  </label>
+  {preview && (
+    <img src={preview} alt="Preview" className="w-20 h-20 object-cover rounded mt-2" />
+  )}
+</div>
+</div>
 
         {/* Preparation Time */}
         <div>
@@ -139,12 +165,13 @@ export default function ProductForm({ form, setForm, onSubmit, categories, loadi
       </div>
 
       {/* Submit */}
-      <div className="mt-6 flex justify-center">
+           <div className="mt-6 flex justify-center">
         <button
           type="submit"
+          disabled={uploadingImage || loading}
           className={`px-8 py-3 rounded-xl font-semibold ${btnPrimary} transition transform hover:scale-105`}
         >
-          {loading ? "Saving..." : "Save Product"}
+          {uploadingImage || loading ? "Saving..." : "Save Product"}
         </button>
       </div>
     </form>
