@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleFavorite } from "../redux/favoriteSlice";
-import { toggleCartItem } from "../redux/cartSlice";
+import { toggleCartItem, removeFromCartFirebase } from "../redux/cartSlice";
 import { useTheme } from "../context/ThemeContext";
 import { auth } from "../firebase/firebaseConfig";
 
@@ -15,7 +15,6 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
   const cartItems = useSelector((state) => state.cart?.items || []);
   const { theme } = useTheme();
 
-  
   const productId = product.id || product.productId;
 
   const isFavorite = favorites.some((item) => item.productId === productId);
@@ -38,7 +37,14 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
       navigate("/login"); 
       return;
     }
-    dispatch(toggleCartItem({ product: { ...product, productId }, quantity: 1 }));
+
+    if (isInCart) {
+      // ➕ لو المنتج موجود في الكارت → نحذفه
+      dispatch(removeFromCartFirebase(productId));
+    } else {
+      // ➕ لو المنتج مش موجود → نضيفه
+      dispatch(toggleCartItem({ product: { ...product, productId }, quantity: 1 }));
+    }
   };
 
   // Theme-based classes
