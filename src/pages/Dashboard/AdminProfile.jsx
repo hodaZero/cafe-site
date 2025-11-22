@@ -1,13 +1,16 @@
-// src/pages/Dashboard/AdminProfile.jsx
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, updateProfile, signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig"; 
 import { FaEdit, FaSignOutAlt } from "react-icons/fa";
+import { uploadImage } from "../../sevices/storage_sevices"; // خدمة رفع الصور
 
 export default function AdminProfile() {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -22,12 +25,35 @@ export default function AdminProfile() {
     return () => unsubscribe();
   }, []);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const handleSave = async () => {
-    if (user) {
-      await updateProfile(user, { displayName });
-      setUser({ ...user, displayName });
-      setIsEditing(false);
+    if (!user) return;
+    let photoURL = user.photoURL;
+
+    // رفع الصورة إذا تم اختيارها
+    if (selectedFile) {
+      setUploadingImage(true);
+      try {
+        photoURL = await uploadImage("admin_profiles", selectedFile);
+      } catch (err) {
+        console.error("Error uploading profile image:", err);
+      } finally {
+        setUploadingImage(false);
+      }
     }
+
+    // تحديث الاسم والصورة في Firebase Auth
+    await updateProfile(user, { displayName, photoURL });
+    setUser({ ...user, displayName, photoURL });
+    setIsEditing(false);
+    setSelectedFile(null);
+    setPreview(null);
   };
 
   const handleLogout = async () => {
@@ -39,24 +65,29 @@ export default function AdminProfile() {
 
   return (
     <div className="flex justify-center items-center min-h-screen relative bg-black">
-      {/* الخلفية مع Overlay أغمق */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(https://via.placeholder.com/800x600)`,
-          filter: "brightness(0.3)", // أخف / أقوى الخلفية
+          filter: "brightness(0.3)",
         }}
       ></div>
       <div className="absolute inset-0 bg-black/70"></div>
 
       <div className="relative flex bg-white shadow-2xl rounded-xl w-full max-w-xl overflow-hidden z-10">
         {/* صورة الادمن */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 relative">
           <img
-            src={user.photoURL || "https://via.placeholder.com/150"}
+            src={preview || user.photoURL || "https://via.placeholder.com/150"}
             alt="Admin"
             className="w-32 h-32 object-cover rounded-l-xl"
           />
+          {isEditing && (
+            <label className="absolute bottom-0 right-0 bg-gray-200 p-1 rounded-full cursor-pointer border border-gray-400">
+              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+              ✎
+            </label>
+          )}
         </div>
 
         <div className="p-6 flex-1 relative">
@@ -112,7 +143,7 @@ export default function AdminProfile() {
                 onClick={handleSave}
                 className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
               >
-                Save
+                {uploadingImage ? "Uploading..." : "Save"}
               </button>
               <button
                 onClick={() => setIsEditing(false)}
