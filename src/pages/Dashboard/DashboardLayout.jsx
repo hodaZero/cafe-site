@@ -1,11 +1,13 @@
-// src/pages/Dashboard/DashboardLayout.jsx
 import Sidebar from "../../components/Sidebar";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function DashboardLayout({ children }) {
   const { theme } = useTheme();
 
-  const bgMain = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
+  const bgMain = theme === "light"
+    ? "bg-light-background text-light-text"
+    : "bg-dark-background text-dark-text";
+
   const sidebarBg = theme === "light" ? "bg-light-surface" : "bg-dark-surface";
 
   return (

@@ -1,19 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
-import { loginUser } from "../../firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
 import { useTheme } from "../../context/ThemeContext";
 
 const Login = () => {
   const { theme } = useTheme();
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [loginError, setLoginError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,15 +27,12 @@ const Login = () => {
   const validatePassword = (password) => {
     if (!password) return "Password is required";
     if (password.length < 6) return "Password must be at least 6 characters";
-    if (!/[A-Z]/.test(password) && !/[a-z]/.test(password))
-      return "Password must contain letters";
-    if (!/[0-9]/.test(password))
-      return "Password must contain at least one number";
     return "";
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoginError("");
 
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
@@ -50,17 +45,24 @@ const Login = () => {
     setErrors({});
 
     try {
-      const user = await loginUser(formData.email, formData.password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
 
-      // توجيه حسب ال role
-      if (user.role === "admin") {
+      if (!userCredential.user.emailVerified) {
+        setLoginError("Please verify your email before logging in.");
+        return;
+      }
+
+      if (userCredential.user.email === "admin@example.com") {
         navigate("/admin/products");
       } else {
         navigate("/");
       }
     } catch (err) {
-      console.error(err.message);
-      alert("Error: " + err.message);
+      setLoginError("Login failed: " + err.message);
     }
   };
 
@@ -70,9 +72,7 @@ const Login = () => {
       : "bg-dark-surface bg-opacity-90 text-dark-text";
 
   const inputBorder =
-    theme === "light"
-      ? "border-light-inputBorder"
-      : "border-dark-inputBorder";
+    theme === "light" ? "border-light-inputBorder" : "border-dark-inputBorder";
 
   const primaryBtn =
     theme === "light"
@@ -128,6 +128,8 @@ const Login = () => {
             Login
           </button>
         </form>
+
+        {loginError && <p className="text-red-500 mt-4 text-center">{loginError}</p>}
 
         <p className="text-center mt-6 text-lg">
           Don't have an account?{" "}

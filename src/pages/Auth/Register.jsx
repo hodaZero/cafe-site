@@ -6,6 +6,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 const Register = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -13,7 +14,8 @@ const Register = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
+  const [successMsg, setSuccessMsg] = useState(""); // رسالة التحقق
+  const [submitError, setSubmitError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,6 +45,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
+    setSuccessMsg("");
 
     const nameError = validateName(formData.name);
     const emailError = validateEmail(formData.email);
@@ -57,10 +61,12 @@ const Register = () => {
 
     try {
       await registerUser(formData.email, formData.password, formData.name);
-      navigate("/");
+      setSuccessMsg(
+        "Registration successful! Please check your email to verify your account."
+      );
+      setFormData({ name: "", email: "", password: "" });
     } catch (err) {
-      console.error(err.message);
-      alert("Error: " + err.message);
+      setSubmitError(err.message);
     }
   };
 
@@ -142,6 +148,9 @@ const Register = () => {
             Register
           </button>
         </form>
+
+        {submitError && <p className="text-red-500 mt-4 text-center">{submitError}</p>}
+        {successMsg && <p className="text-green-500 mt-4 text-center">{successMsg}</p>}
 
         <p className="text-center mt-6 text-lg">
           Already have an account?{" "}

@@ -1,70 +1,61 @@
+// src/pages/ProfilePage.jsx
 import React, { useEffect, useState } from "react";
-import ProfileCard from "../components/ProfileCard";
-import backgroundPic from "../assets/images/backgroundPic.jpg";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
-import { getUserData, logoutUser } from "../firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 
-const ProfilePage = () => {
-  const [userData, setUserData] = useState(null);
+export default function ProfilePage() {
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const { theme } = useTheme();
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (auth.currentUser) {
-        const data = await getUserData(auth.currentUser.uid);
-        setUserData(data);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        setUser(null);
       }
-    };
+    });
 
-    fetchUserData();
+    return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
-    await logoutUser();
+    await signOut(auth);
     navigate("/login");
   };
 
-  if (!userData) return <p className="pt-16 text-light-text dark:text-dark-text text-center mt-20">Loading...</p>;
+  const cardBg = theme === "light" ? "bg-white text-black" : "bg-gray-800 text-white";
+  const btnStyle = theme === "light"
+    ? "bg-light-primary hover:bg-light-primaryHover text-black"
+    : "bg-dark-primary hover:bg-dark-primaryHover text-white";
 
-  const pageBg = theme === "light" ? "bg-light-background" : "bg-dark-background";
-  const overlay = theme === "light" ? "bg-black/20" : "bg-black/40";
-  const logoutBtn = theme === "light" 
-    ? "bg-light-primary text-light-text hover:bg-light-primaryHover"
-    : "bg-dark-primary text-dark-text hover:bg-dark-primaryHover";
+  if (!user) return <p className="text-center mt-20">Loading...</p>;
 
   return (
-    <div className={`pt-16 relative min-h-screen flex flex-col items-center py-12 overflow-hidden ${pageBg}`}>
-    
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${backgroundPic})`,
-          filter: theme === "light" ? "brightness(0.8)" : "brightness(0.35)",
-        }}
-      ></div>
-      <div className={`absolute inset-0 backdrop-blur-sm ${overlay}`}></div>
-
-      <div className="relative z-10 flex flex-col items-center w-full gap-6">
-        <ProfileCard
-          name={userData.name}
-          email={userData.email}
-          avatar={userData.avatar || "https://i.pravatar.cc/100"}
+    <div className="flex justify-center items-center min-h-screen p-6 bg-gray-100 dark:bg-gray-900">
+      <div className={`rounded-xl shadow-lg p-8 w-full max-w-md flex flex-col items-center gap-6 ${cardBg}`}>
+        <img
+          src={user.photoURL || "https://i.pravatar.cc/150?img=12"}
+          alt="User Avatar"
+          className="w-24 h-24 rounded-full object-cover"
         />
 
-        <div className="flex justify-center w-full">
-          <button
-            onClick={handleLogout}
-            className={`px-6 py-2 font-semibold rounded-lg shadow-md transition ${logoutBtn}`}
-          >
-            Logout
-          </button>
+        <div className="w-full space-y-2">
+          <p><span className="font-semibold">Name: </span>{user.displayName || "User"}</p>
+          <p><span className="font-semibold">Email: </span>{user.email}</p>
+          <p><span className="font-semibold">Role: </span>User</p>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className={`mt-4 px-6 py-2 rounded-lg font-semibold transition ${btnStyle}`}
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
-};
-
-export default ProfilePage;
+}
