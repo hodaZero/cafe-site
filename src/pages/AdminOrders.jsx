@@ -1,4 +1,4 @@
-// --- ADMIN ORDERS (FINAL VERSION) WITH DELETE CONFIRM MODAL + STATUS FILTER ---
+// --- ADMIN ORDERS (FINAL VERSION) WITH TOTAL SALARY + CORRECT QTY ---
 import React, { useState, useEffect } from "react";
 import {
   Search,
@@ -28,12 +28,15 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All"); // <-- الحالة الجديدة
+  const [statusFilter, setStatusFilter] = useState("All");
   const [activeTab, setActiveTab] = useState(null);
 
-  // --- Modal State ---
+  // Delete Order Modal
   const [showModal, setShowModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
+
+  // Clear Completed/Rejected Modal
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const fetchOrders = async () => {
     let allOrders = [];
@@ -61,6 +64,9 @@ export default function AdminOrders() {
       });
     }
 
+    // sort newest first
+    allOrders.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+
     setOrders(allOrders);
   };
 
@@ -70,7 +76,6 @@ export default function AdminOrders() {
 
   const handleStatusChange = async (order, newStatus) => {
     const ref = doc(db, "users", order.userId, "orders", order.id);
-
     await updateDoc(ref, { status: newStatus });
 
     setOrders((prev) =>
@@ -100,8 +105,12 @@ export default function AdminOrders() {
     }
 
     setOrders((prev) =>
-      prev.filter((order) => order.status !== "completed" && order.status !== "rejected")
+      prev.filter(
+        (order) => order.status !== "completed" && order.status !== "rejected"
+      )
     );
+
+    setShowClearModal(false);
   };
 
   const filtered = orders.filter(
@@ -127,6 +136,7 @@ export default function AdminOrders() {
 
   return (
     <div className={`pt-16 min-h-screen p-6 font-sans ${bgMain}`}>
+      
       {/* Header */}
       <div className="flex justify-between items-center mb-6 flex-wrap">
         <div className="flex items-center gap-3 w-full md:w-2/3">
@@ -142,9 +152,11 @@ export default function AdminOrders() {
 
           {/* Category + Status Filters */}
           <div className="flex items-center gap-2 mt-2 md:mt-0">
-            {[{ name: "All", icon: <LayoutGrid size={16} /> },
+            {[ 
+              { name: "All", icon: <LayoutGrid size={16} /> },
               { name: "Dessert", icon: <CakeSlice size={16} /> },
-              { name: "Drink", icon: <Coffee size={16} /> }].map((cat) => (
+              { name: "Drink", icon: <Coffee size={16} /> },
+            ].map((cat) => (
               <button
                 key={cat.name}
                 onClick={() => setCategory(cat.name)}
@@ -157,9 +169,9 @@ export default function AdminOrders() {
               </button>
             ))}
 
-            {/* --- Status Filter Dropdown --- */}
+            {/* Status Filter */}
             <select
-              className={`ml-2 px-2 py-2 text-xs rounded-md ${inputBg} focus:outline-none`}
+              className={`ml-2 px-2 py-2 text-xs rounded-md ${inputBg}`}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -187,7 +199,7 @@ export default function AdminOrders() {
       {/* Clear Completed/Rejected Button */}
       <div className="flex justify-end mb-4">
         <button
-          onClick={handleClearFinished}
+          onClick={() => setShowClearModal(true)}
           className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center gap-2"
         >
           <Trash2 size={16} />
@@ -219,7 +231,7 @@ export default function AdminOrders() {
               key={order.id}
               className={`rounded-xl p-4 shadow-lg border hover:shadow-xl transition-all ${cardBg} relative`}
             >
-              {/* --- Delete Icon on Card Top-Right --- */}
+              {/* Delete Icon */}
               <button
                 onClick={() => {
                   setOrderToDelete(order);
@@ -267,13 +279,31 @@ export default function AdminOrders() {
                     <p className={`text-sm font-semibold ${cardText}`}>
                       {item.name}
                     </p>
-                    <p className={`text-xs ${subText}`}>Qty: {item.qty}</p>
-                    <p className={`text-xs ${subText}`}>${item.price}</p>
+
+                    {/* FIXED QUANTITY */}
+                    <p className={`text-xs ${subText}`}>Qty: {item.quantity}</p>
+
+                    {/* PRICE × QUANTITY */}
+                    <p className={`text-xs ${subText}`}>
+                      {item.price} EGP × {item.quantity} ={" "}
+                      <span className="font-semibold">
+                        {item.price * item.quantity} EGP
+                      </span>
+                    </p>
                   </div>
                 </div>
               ))}
 
-              <hr className={`border ${theme === "light" ? "border-gray-300" : "border-gray-600"} mb-2`} />
+              <hr
+                className={`border ${
+                  theme === "light" ? "border-gray-300" : "border-gray-600"
+                } mb-2`}
+              />
+
+              {/* TOTAL SALARY DISPLAY */}
+              <p className={`text-sm font-bold mb-2 ${cardText}`}>
+                Total Salary: <span className="text-primary">{order.total} EGP</span>
+              </p>
 
               {/* Status */}
               <div className="flex justify-between items-center">
@@ -309,7 +339,7 @@ export default function AdminOrders() {
           ))}
       </div>
 
-      {/* --- Confirmation Modal --- */}
+      {/* Delete Single Order Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white dark:bg-black p-6 rounded-lg w-80 text-center">
@@ -325,6 +355,31 @@ export default function AdminOrders() {
               </button>
               <button
                 onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Completed/Rejected Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white dark:bg-black p-6 rounded-lg w-80 text-center">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              Delete ALL completed & rejected orders?
+            </h3>
+            <div className="flex justify-around mt-4">
+              <button
+                onClick={handleClearFinished}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Yes, Clear All
+              </button>
+              <button
+                onClick={() => setShowClearModal(false)}
                 className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
               >
                 Cancel

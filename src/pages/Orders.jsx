@@ -33,14 +33,75 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  const pageClass = theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black";
+  const bg = theme === "light"
+    ? "bg-gray-100 text-gray-900"
+    : "bg-[#0f0f0f] text-white";
 
-  if (loading) return <div className={`pt-16 min-h-screen flex justify-center items-center ${pageClass}`}>Loading...</div>;
-  if (!orders.length) return <div className={`pt-16 min-h-screen flex justify-center items-center ${pageClass}`}>No orders yet.</div>;
+  const cardBg = theme === "light"
+    ? "bg-white text-gray-900"
+    : "bg-[#1a1a1a] text-white";
+
+  const primaryColor = "text-[#D3AD7F]"; // نفس اللون المستخدم في باقي المشروع
+
+  if (loading)
+    return (
+      <div className={`pt-16 min-h-screen flex justify-center items-center ${bg}`}>
+        Loading...
+      </div>
+    );
+
+  if (!orders.length)
+    return (
+      <div className={`pt-16 min-h-screen flex justify-center items-center ${bg}`}>
+        No orders yet.
+      </div>
+    );
 
   return (
-    <div className={`p-4 pt-16 min-h-screen transition-colors duration-300 ${pageClass}`}>
-      {orders.map(order => <OrderItem key={order.id} order={order} />)}
+    <div className={`pt-20 min-h-screen px-6 transition-all duration-300 ${bg}`}>
+      
+      {/* Title */}
+      <h1 className={`text-4xl font-bold mb-10 text-center ${primaryColor}`}>
+        MY ORDERS
+      </h1>
+
+      <div className="max-w-3xl mx-auto flex flex-col gap-6">
+        {orders.map(order => (
+          <div
+            key={order.id}
+            className={`rounded-2xl p-6 shadow-xl border border-gray-300/20 ${cardBg}`}
+          >
+            <OrderItem order={order} />
+
+            {/* Extra details */}
+            <div className="mt-4 border-t pt-4 opacity-80 text-sm">
+              <p>
+                <span className="font-semibold">Total Salary:</span>{" "}
+                <span className={primaryColor}>{order.total} EGP</span>
+              </p>
+
+              <p>
+                <span className="font-semibold">Status:</span>{" "}
+                <span
+                  className={
+                    order.status === "completed"
+                      ? "text-green-500 font-semibold"
+                      : order.status === "rejected"
+                      ? "text-red-500 font-semibold"
+                      : "text-yellow-500 font-semibold"
+                  }
+                >
+                  {order.status}
+                </span>
+              </p>
+
+              <p className="mt-1 text-xs opacity-60">
+                {order.createdAt?.toDate().toLocaleString()}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
