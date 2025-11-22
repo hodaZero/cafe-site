@@ -7,6 +7,8 @@ const initialState = {
   items: [],
   loading: false,
   error: null,
+  orderType: "",       // dineIn / takeAway
+  selectedTable: null, // { id: "abc123", tableNumber: 5 } لو dineIn
 };
 
 // Fetch cart items
@@ -19,7 +21,6 @@ export const fetchCart = createAsyncThunk(
       const cartRef = collection(db, "users", uid, "cart");
       const snapshot = await getDocs(cartRef);
 
-      // إزالة duplicates
       const fetched = snapshot.docs.map(d => ({ firebaseId: d.id, ...d.data() }));
       const unique = [];
       fetched.forEach(item => {
@@ -98,6 +99,17 @@ const cartSlice = createSlice({
       const item = state.items.find(i => i.productId === action.payload);
       if (item && item.quantity > 1) item.quantity -= 1;
     },
+    // Set order type
+    setOrderType: (state, action) => {
+      state.orderType = action.payload; // dineIn / takeAway
+      if (action.payload === "takeAway") state.selectedTable = null; // مسح الترابيزة لو تيك أوي
+    },
+    // Set selected table كامل (object)
+    setSelectedTable: (state, action) => {
+      // action.payload = { id: "...", tableNumber: 5 }
+      state.selectedTable = action.payload;
+      if (action.payload) state.orderType = "dineIn"; // لو حددنا ترابيزة يبقى dineIn
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -118,5 +130,5 @@ const cartSlice = createSlice({
   }
 });
 
-export const { increaseQty, decreaseQty } = cartSlice.actions;
+export const { increaseQty, decreaseQty, setOrderType, setSelectedTable } = cartSlice.actions;
 export default cartSlice.reducer;
