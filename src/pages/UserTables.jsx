@@ -57,5 +57,4 @@ const UserTables = () => {
     </div>
   );
 };
-
 export default UserTables;
