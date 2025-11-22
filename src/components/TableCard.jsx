@@ -6,8 +6,12 @@ const TableCard = ({ table, selected }) => {
   const isSelected = selected === table.id;
 
   const bg = isSelected
-    ? theme === "light" ? "bg-light-primary border-2 border-black" : "bg-dark-primary border-2 border-white"
-    : theme === "light" ? "bg-light-surface border border-light-inputBorder" : "bg-dark-surface border border-dark-inputBorder";
+    ? theme === "light"
+      ? "bg-light-primary border-2 border-black"
+      : "bg-dark-primary border-2 border-white"
+    : theme === "light"
+    ? "bg-light-surface border border-light-inputBorder"
+    : "bg-dark-surface border border-dark-inputBorder";
 
   const textColor = isSelected
     ? "text-black font-semibold"
@@ -24,13 +28,13 @@ const TableCard = ({ table, selected }) => {
       <div className="flex justify-center mb-3">
         <img
           src={table.image || "https://images.unsplash.com/photo-1599423300746-b62533397364?w=400&q=80"}
-          alt={`Table ${table.id}`}
+          alt={`Table ${table.tableNumber || table.id}`}
           className="w-24 h-24 object-cover rounded-md"
         />
       </div>
 
       <h2 className={`text-xl font-semibold mb-1 text-center ${textColor}`}>
-        Table {table.id}
+        Table {table.tableNumber || table.id}
       </h2>
 
       <p className={`text-lg font-medium ${textColor}`}>
