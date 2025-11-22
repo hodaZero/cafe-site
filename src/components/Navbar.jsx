@@ -9,7 +9,6 @@ import { logoutUser } from "../firebase/auth";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -37,7 +36,6 @@ export default function Navbar() {
   const iconClass = theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary";
   const avatarBorder = theme === "dark" ? "border-dark-primary" : "border-light-primary";
 
-  // Icon with badge helper
   const IconButton = ({ Icon, count, onClick }) => (
     <button onClick={onClick} className={`relative transition-colors duration-300 ${iconClass}`}>
       <Icon size={24} />
@@ -49,7 +47,6 @@ export default function Navbar() {
     </button>
   );
 
-  // Navigation links + buttons  (✔ تم تعديل My Orders فقط)
   const renderLinks = () => (
     <>
       <Link
@@ -69,11 +66,20 @@ export default function Navbar() {
       </Link>
 
       <Link
-        to="/orders"   // ✔ هنا التعديل الوحيد
+        to="/orders"
         className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
         onClick={() => setOpen(false)}
       >
         My Orders
+      </Link>
+
+      {/* ✔ تمت إضافة الرابط هنا */}
+      <Link
+        to="/tables"
+        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
+        onClick={() => setOpen(false)}
+      >
+        Tables
       </Link>
 
       {!user ? (
@@ -85,7 +91,6 @@ export default function Navbar() {
           >
             Login
           </Link>
-
         </>
       ) : (
         <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>
@@ -95,13 +100,12 @@ export default function Navbar() {
     </>
   );
 
-  // Icons section (desktop + mobile)
   const renderIcons = () => (
     <>
       <IconButton Icon={Heart} count={favoritesCount} onClick={() => user ? navigate("/favorites") : navigate("/login")} />
       <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />
       <ThemeToggle />
-       {user && (
+      {user && (
         <button onClick={() => navigate("/profile")}>
           <img
             src={user.photoURL || "https://i.pravatar.cc/100"}
@@ -116,43 +120,38 @@ export default function Navbar() {
   return (
     <header className={`fixed w-full z-50 transition-colors duration-300 ${headerClass}`}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-
-        {/* Logo */}
+        
         <Link to="/" className="flex items-center gap-3">
-  <motion.img
-    src={logo}
-    alt="logo"
-    className="h-12 w-12 rounded-xl shadow-md"
-    initial={{ scale: 0, rotate: -20, opacity: 0 }}
-    animate={{ scale: 1, rotate: 0, opacity: 1 }}
-    transition={{ duration: 0.6, ease: "easeOut" }}
-    whileHover={{ scale: 1.1, rotate: 3 }}
-  />
+          <motion.img
+            src={logo}
+            alt="logo"
+            className="h-12 w-12 rounded-xl shadow-md"
+            initial={{ scale: 0, rotate: -20, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            whileHover={{ scale: 1.1, rotate: 3 }}
+          />
+          <motion.span
+            className="text-3xl font-bold"
+            style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px" }}
+            initial={{ x: -15, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <motion.span className="text-light-primary"> D</motion.span>
+            omi <motion.span className="text-light-primary">C</motion.span>afe
+          </motion.span>
+        </Link>
 
- <motion.span
-  className="text-3xl font-bold"
-  style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px"}}
-  initial={{ x: -15, opacity: 0 }}
-  animate={{ x: 0, opacity: 1 }}
-  transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-  whileHover={{ scale: 1.05 }}
->
- <motion.span className="text-light-primary"> D</motion.span>
-  omi <motion.span className="text-light-primary">C</motion.span>afe
-</motion.span>
-
-</Link>
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-4 items-center">
           {renderLinks()}
         </nav>
 
-        {/* Desktop Icons */}
         <div className="hidden md:flex items-center gap-4">
           {renderIcons()}
         </div>
 
-        {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
           <ThemeToggle />
           <button onClick={() => setOpen(!open)} className="p-2">
@@ -161,7 +160,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {open && (
         <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}>
           <div className="flex flex-col gap-2 py-2 px-4">
