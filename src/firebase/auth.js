@@ -2,23 +2,27 @@ import { auth, db } from "./firebaseConfig";
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signOut 
+  signOut,
+  sendEmailVerification
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 // ----------------------
-// REGISTER USER
+// REGISTER USER WITH EMAIL VERIFICATION
 // ----------------------
 export const registerUser = async (email, password, name) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
+
+  // إرسال رابط التحقق على الإيميل
+  await sendEmailVerification(user);
 
   // تخزين المستخدم في Firestore + role = user
   await setDoc(doc(db, "users", user.uid), {
     name,
     email,
     avatar: "",
-    role: "user",       // 👈 أهم سطر
+    role: "user",
     createdAt: new Date(),
   });
 
@@ -26,15 +30,18 @@ export const registerUser = async (email, password, name) => {
 };
 
 // ----------------------
-// LOGIN USER + GET ROLE
+// LOGIN USER + VERIFY EMAIL
 // ----------------------
 export const loginUser = async (email, password) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
+  if (!user.emailVerified) {
+    throw new Error("Please verify your email before logging in.");
+  }
+
   // قراءة بيانات Firestore
   const userDoc = await getDoc(doc(db, "users", user.uid));
-
   if (userDoc.exists()) {
     return { ...user, ...userDoc.data() }; 
   }
