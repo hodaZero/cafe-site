@@ -1,4 +1,4 @@
-// --- ADMIN ORDERS (FINAL VERSION) WITH TOTAL SALARY + CORRECT QTY ---
+// --- ADMIN ORDERS (FINAL VERSION) WITH TOTAL SALARY + CORRECT QTY + TABLE NUMBER ---
 import React, { useState, useEffect } from "react";
 import {
   Search,
@@ -31,11 +31,9 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [activeTab, setActiveTab] = useState(null);
 
-  // Delete Order Modal
   const [showModal, setShowModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
 
-  // Clear Completed/Rejected Modal
   const [showClearModal, setShowClearModal] = useState(false);
 
   const fetchOrders = async () => {
@@ -64,7 +62,6 @@ export default function AdminOrders() {
       });
     }
 
-    // sort newest first
     allOrders.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
 
     setOrders(allOrders);
@@ -124,19 +121,25 @@ export default function AdminOrders() {
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
 
-  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-dark-surface text-white";
+  const bgMain =
+    theme === "light" ? "bg-gray-100 text-gray-900" : "bg-dark-surface text-white";
   const inputBg =
-    theme === "light" ? "bg-white text-black border-gray-300" : "bg-black text-white border-[#2c2c2c]";
-  const tabActive = theme === "light" ? "bg-primary text-black" : "bg-[#D3AD7F] text-black";
+    theme === "light"
+      ? "bg-white text-black border-gray-300"
+      : "bg-black text-white border-[#2c2c2c]";
+  const tabActive =
+    theme === "light" ? "bg-primary text-black" : "bg-[#D3AD7F] text-black";
   const tabInactive =
-    theme === "light" ? "bg-white text-gray-600 hover:bg-gray-200" : "bg-dark-surface text-gray-400 hover:bg-[#222]";
-  const cardBg = theme === "light" ? "bg-white border-gray-200" : "bg-black border-[#2a2a2a]";
+    theme === "light"
+      ? "bg-white text-gray-600 hover:bg-gray-200"
+      : "bg-dark-surface text-gray-400 hover:bg-[#222]";
+  const cardBg =
+    theme === "light" ? "bg-white border-gray-200" : "bg-black border-[#2a2a2a]";
   const cardText = theme === "light" ? "text-gray-900" : "text-white";
   const subText = theme === "light" ? "text-gray-500" : "text-gray-400";
 
   return (
     <div className={`pt-16 min-h-screen p-6 font-sans ${bgMain}`}>
-      
       {/* Header */}
       <div className="flex justify-between items-center mb-6 flex-wrap">
         <div className="flex items-center gap-3 w-full md:w-2/3">
@@ -150,9 +153,8 @@ export default function AdminOrders() {
             />
           </div>
 
-          {/* Category + Status Filters */}
           <div className="flex items-center gap-2 mt-2 md:mt-0">
-            {[ 
+            {[
               { name: "All", icon: <LayoutGrid size={16} /> },
               { name: "Dessert", icon: <CakeSlice size={16} /> },
               { name: "Drink", icon: <Coffee size={16} /> },
@@ -169,7 +171,6 @@ export default function AdminOrders() {
               </button>
             ))}
 
-            {/* Status Filter */}
             <select
               className={`ml-2 px-2 py-2 text-xs rounded-md ${inputBg}`}
               value={statusFilter}
@@ -196,7 +197,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Clear Completed/Rejected Button */}
+      {/* Clear Completed/Rejected */}
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setShowClearModal(true)}
@@ -231,7 +232,7 @@ export default function AdminOrders() {
               key={order.id}
               className={`rounded-xl p-4 shadow-lg border hover:shadow-xl transition-all ${cardBg} relative`}
             >
-              {/* Delete Icon */}
+              {/* Delete */}
               <button
                 onClick={() => {
                   setOrderToDelete(order);
@@ -260,6 +261,14 @@ export default function AdminOrders() {
                   {order.customerEmail && (
                     <p className={`text-xs ${subText}`}>{order.customerEmail}</p>
                   )}
+
+                  {/* ⭐ ADDED TABLE NUMBER HERE ⭐ */}
+                  <p className={`text-xs mt-1 font-semibold ${cardText}`}>
+                    Table:{" "}
+                    <span className="text-primary">
+                      {order.tableNumber ? `Table ${order.tableNumber}` : "Take Away"}
+                    </span>
+                  </p>
                 </div>
 
                 <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-black font-bold">
@@ -280,10 +289,8 @@ export default function AdminOrders() {
                       {item.name}
                     </p>
 
-                    {/* FIXED QUANTITY */}
                     <p className={`text-xs ${subText}`}>Qty: {item.quantity}</p>
 
-                    {/* PRICE × QUANTITY */}
                     <p className={`text-xs ${subText}`}>
                       {item.price} EGP × {item.quantity} ={" "}
                       <span className="font-semibold">
@@ -300,9 +307,9 @@ export default function AdminOrders() {
                 } mb-2`}
               />
 
-              {/* TOTAL SALARY DISPLAY */}
               <p className={`text-sm font-bold mb-2 ${cardText}`}>
-                Total Salary: <span className="text-primary">{order.total} EGP</span>
+                Total Salary:{" "}
+                <span className="text-primary">{order.total} EGP</span>
               </p>
 
               {/* Status */}
@@ -339,7 +346,7 @@ export default function AdminOrders() {
           ))}
       </div>
 
-      {/* Delete Single Order Modal */}
+      {/* Delete Single */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white dark:bg-black p-6 rounded-lg w-80 text-center">
@@ -364,7 +371,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Clear All Completed/Rejected Modal */}
+      {/* Clear Finished */}
       {showClearModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white dark:bg-black p-6 rounded-lg w-80 text-center">
