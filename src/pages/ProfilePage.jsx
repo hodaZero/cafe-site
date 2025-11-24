@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, updateProfile, updateEmail } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";

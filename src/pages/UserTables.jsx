@@ -1,4 +1,3 @@
-// UserTables.js
 import React, { useState, useEffect } from "react";
 import TableCard from "../components/TableCard";
 import { useTheme } from "../context/ThemeContext";
@@ -6,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSelectedTable } from "../redux/cartSlice";
 import { db, auth } from "../firebase/firebaseConfig"; 
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { motion } from "framer-motion";
 
 const UserTables = () => {
   const { theme } = useTheme();
@@ -15,8 +15,10 @@ const UserTables = () => {
   const [tables, setTables] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [tableToReserve, setTableToReserve] = useState(null);
-
   const floors = ["Upstairs", "Downstairs"];
+
+  const bgMain = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
+  const headingColor = theme === "light" ? "text-light-heading" : "text-dark-heading";
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -50,7 +52,6 @@ const UserTables = () => {
         : t)
     );
 
-    // 🔹 تخزين الترابيزة كاملة في Redux
     dispatch(setSelectedTable({
       id: tableToReserve.id,
       tableNumber: tableToReserve.tableNumber
@@ -60,66 +61,77 @@ const UserTables = () => {
     setTableToReserve(null);
   };
 
-  const renderStatusMessage = (table) => {
+  const renderStatusBadge = (table) => {
     if (table.status === "pending" && !table.approved) {
-      return (
-        <span className="mt-2 block px-2 py-1 rounded-full bg-yellow-400 text-black text-sm font-semibold text-center">
-          Waiting for admin approval
-        </span>
-      );
+      return <span className="px-2 py-1 rounded-md bg-yellow-400 text-black font-semibold text-sm">Pending Approval</span>;
     }
     if (table.status === "pending" && table.approved) {
-      return (
-        <span className="mt-2 block px-2 py-1 rounded-full bg-green-500 text-white text-sm font-semibold text-center">
-          Admin Approved
-        </span>
-      );
+      return <span className="px-2 py-1 rounded-md bg-green-500 text-white font-semibold text-sm">Admin Approved</span>;
     }
     if (table.status === "occupied") {
-      return (
-        <span className="mt-2 block px-2 py-1 rounded-full bg-gray-500 text-white text-sm font-semibold text-center">
-          Occupied
-        </span>
-      );
+      return <span className="px-2 py-1 rounded-md bg-gray-500 text-white font-semibold text-sm">Occupied</span>;
     }
     return null;
   };
 
+  const countStatus = (floor, status) => tables.filter(t => t.floor === floor && t.status === status).length;
+
   return (
-    <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 ${theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text"}`}>
-      <h1 className={`text-4xl font-bold mb-12 text-center ${theme === "light" ? "text-light-heading" : "text-dark-heading"}`}>Select Your Table</h1>
+    <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
+      <h1 className={`text-4xl font-bold mb-8 text-center drop-shadow-lg ${headingColor}`}>Select Your Table</h1>
 
       {floors.map(floor => (
-        <div key={floor} className="w-full max-w-6xl mb-10">
-          <h2 className={`text-2xl font-semibold mb-4 ${theme === "light" ? "text-light-heading" : "text-dark-heading"}`}>{floor}</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div key={floor} className="w-full max-w-6xl mb-12">
+          <h2 className={`text-2xl font-semibold mb-4 ${headingColor}`}>{floor}</h2>
+
+          {/* Filter / Summary */}
+          <div className="flex justify-center items-center gap-6 mb-6 flex-wrap">
+            <div className="px-4 py-2 rounded-xl bg-green-500 font-semibold shadow-md text-white">Available: {countStatus(floor, "available")}</div>
+            <div className="px-4 py-2 rounded-xl bg-gray-500 font-semibold shadow-md text-white">Occupied: {countStatus(floor, "occupied")}</div>
+            <div className="px-4 py-2 rounded-xl bg-yellow-400 font-semibold shadow-md text-black">Pending: {countStatus(floor, "pending")}</div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {tables
               .filter(t => t.floor === floor)
               .sort((a, b) => a.tableNumber - b.tableNumber)
               .map(table => (
-                <div key={table.id} className="relative cursor-pointer" onClick={() => handleSelectTable(table)}>
+                <motion.div key={table.id} whileHover={{ scale: 1.05 }} className="transition-transform relative cursor-pointer" onClick={() => handleSelectTable(table)}>
                   <TableCard table={table} selected={selectedTable?.id} />
-                  {renderStatusMessage(table)}
-                </div>
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                    {renderStatusBadge(table)}
+                  </div>
+                </motion.div>
               ))}
           </div>
         </div>
       ))}
 
+      {/* Reserve Modal */}
       {showModal && tableToReserve && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-[#1a1a1a] p-8 rounded-2xl w-96 text-center">
-            <h2 className="text-xl font-bold mb-4">Reserve Table</h2>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={`bg-white dark:bg-[#1a1a1a] text-black dark:text-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center gap-6`}
+          >
+            <h2 className="text-2xl font-bold text-center">Reserve Table</h2>
             <p className="mb-6">Do you want to reserve Table {tableToReserve.tableNumber}?</p>
-            <div className="flex justify-around">
-              <button className="px-6 py-2 rounded-xl bg-green-500 text-white" onClick={handleReserveTable}>
+            <div className="flex gap-4">
+              <button
+                onClick={handleReserveTable}
+                className="px-6 py-2 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-md"
+              >
                 Reserve
               </button>
-              <button className="px-6 py-2 rounded-xl border dark:border-white" onClick={() => setShowModal(false)}>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-6 py-2 bg-gray-400 text-white font-semibold rounded-xl hover:bg-gray-500 shadow-md"
+              >
                 Cancel
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

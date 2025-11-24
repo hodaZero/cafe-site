@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
 import { registerUser } from "../../firebase/auth";
 import { useTheme } from "../../context/ThemeContext";
+import { Link } from "react-router-dom";
 
 const Register = () => {
   const { theme } = useTheme();
@@ -142,14 +143,15 @@ const Register = () => {
 
         <p className="text-center mt-4 text-base sm:text-lg">
           Already have an account?{" "}
-          <a
-            href="/login"
-            className={`font-semibold ${
-              theme === "light" ? "text-light-primary" : "text-dark-primary"
-            }`}
-          >
-            Login
-          </a>
+        <Link
+              to="/login"
+              className={`font-semibold ${
+                theme === "light" ? "text-light-primary" : "text-dark-primary"
+              }`}
+            >
+              Login
+            </Link>
+
         </p>
       </div>
     </div>

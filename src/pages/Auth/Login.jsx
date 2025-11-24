@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
 import { loginUser, loginWithGoogle, resendVerificationEmail } from "../../firebase/auth";
 import { useTheme } from "../../context/ThemeContext";
@@ -59,9 +59,7 @@ const Login = () => {
 
     try {
       const firebaseUser = await loginUser(formData.email, formData.password);
-
       await handleLoginRedirect(firebaseUser);
-
     } catch (err) {
       if (err.message.includes("verify your email")) {
         setInfoMsg("Please verify your email. A verification link has been sent.");
@@ -95,14 +93,26 @@ const Login = () => {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <input type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleChange}
-              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-black text-base sm:text-lg ${inputBorder}`} />
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-black text-base sm:text-lg ${inputBorder}`}
+            />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
-            <input type="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange}
-              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-black text-base sm:text-lg ${inputBorder}`} />
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-black text-base sm:text-lg ${inputBorder}`}
+            />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
 
@@ -111,7 +121,10 @@ const Login = () => {
           <button type="submit" className={`w-full py-2 sm:py-3 rounded-md transition text-base sm:text-lg font-semibold ${primaryBtn}`}>Login</button>
         </form>
 
-        <button onClick={handleGoogleLogin} className={`mt-4 w-full flex items-center justify-center gap-2 py-2 sm:py-3 rounded-md border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-lg`}>
+        <button
+          onClick={handleGoogleLogin}
+          className={`mt-4 w-full flex items-center justify-center gap-2 py-2 sm:py-3 rounded-md border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-lg`}
+        >
           <FcGoogle size={24} /> Login with Google
         </button>
 
@@ -119,7 +132,13 @@ const Login = () => {
         {infoMsg && <p className="text-blue-500 mt-4 text-center">{infoMsg}</p>}
 
         <p className="text-center mt-4 text-base sm:text-lg">
-          Don't have an account? <a href="/register" className={`font-semibold ${theme === "light" ? "text-light-primary" : "text-dark-primary"}`}>Register</a>
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className={`font-semibold ${theme === "light" ? "text-light-primary" : "text-dark-primary"}`}
+          >
+            Register
+          </Link>
         </p>
       </div>
     </div>

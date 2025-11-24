@@ -49,8 +49,9 @@ function AppContent() {
 
       <Routes>
         {/* Public pages */}
-        {!user && <Route path="/login" element={<Login />} />}
-        {!user && <Route path="/register" element={<Register />} />}
+        <Route path="/login" element={<Login />} />   
+        <Route path="/register" element={<Register />} /> 
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* User protected routes */}
@@ -75,6 +76,26 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="/cart"
+          element={
+            <PrivateRoute>
+              <CartPage />
+            </PrivateRoute>
+          }
+        
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute>
+              <CheckoutPage />
+            </PrivateRoute>
+          }
+        
+        />
+
 
         <Route
           path="/orders"
