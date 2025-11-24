@@ -51,11 +51,17 @@ export default function ProductForm({ form, setForm, onSubmit, categories, loadi
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (selectedFile && !form.image) {
-      const url = await handleImageUpload();
-      if (!url) return;
-    }
-    if (validate()) onSubmit();
+     let imageUrl = form.image;
+  if (selectedFile) {
+    imageUrl = await handleImageUpload();
+    if (!imageUrl) return;
+  }
+  const finalData = {
+    ...form,
+    image: imageUrl,
+  };
+
+  if (validate()) onSubmit(finalData);
   };
 
   const inputBg = theme === "light"

@@ -71,7 +71,7 @@ const Register = () => {
       : "bg-dark-surface bg-opacity-90 text-dark-text";
 
   const inputBorder =
-    theme === "light" ? "border-light-inputBorder" : "border-dark-inputBorder";
+    theme === "light" ? "border-light-inputBorder bg-light-input" : "border-dark-inputBorder bg-dark-input";
 
   const primaryBtn =
     theme === "light"

@@ -79,10 +79,9 @@ const Login = () => {
     }
   };
 
-  const cardBg = theme === "light" ? "bg-light-surface bg-opacity-90 text-black" : "bg-dark-surface bg-opacity-90 text-black";
-  const inputBorder = theme === "light" ? "border-light-inputBorder" : "border-dark-inputBorder";
+  const cardBg = theme === "light" ? "bg-light-surface bg-opacity-90 text-black" : "bg-dark-surface bg-opacity-90 text-white";
+  const inputBorder = theme === "light" ? "border-light-inputBorder bg-light-input" : "border-dark-inputBorder bg-dark-input";
   const primaryBtn = theme === "light" ? "bg-light-primary hover:bg-light-primaryHover text-black" : "bg-dark-primary hover:bg-dark-primaryHover text-black";
-
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${backgroundPic})` }}></div>
@@ -99,7 +98,8 @@ const Login = () => {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-black text-base sm:text-lg ${inputBorder}`}
+              className={`w-full px-4 
+                py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg ${inputBorder}`}
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
@@ -111,7 +111,7 @@ const Login = () => {
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
-              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-black text-base sm:text-lg ${inputBorder}`}
+              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg ${inputBorder}`}
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
