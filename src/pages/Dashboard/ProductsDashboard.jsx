@@ -70,7 +70,7 @@ export default function ProductsDashboard() {
   const btnPrimary = theme==="light" ? "bg-light-primary text-black hover:bg-light-primaryHover" : "bg-dark-primary text-black hover:bg-dark-primaryHover";
 
   return (
-    <div className={`min-h-screen p-6 transition-colors duration-300 ${bgMain}`}>
+    <div className={`pt-16 min-h-screen p-6 transition-colors duration-300 ${bgMain}`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">Products Management</h1>
