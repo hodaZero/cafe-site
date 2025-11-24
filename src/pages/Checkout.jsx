@@ -119,153 +119,139 @@ const CheckoutPage = () => {
       : "bg-light-primary hover:bg-light-primaryHover text-white";
 
   return (
-    <div className={`pt-20 min-h-screen px-6 pb-16 flex flex-col items-center ${bgMain}`}>
-      {/* Title */}
+    <div className={`pt-20 min-h-screen px-6 pb-16 ${bgMain}`}>
+      {/* Page Title */}
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-5xl font-extrabold mb-12 text-dark-primary tracking-wide drop-shadow-lg"
+        className="text-5xl font-extrabold mb-12 text-center text-dark-primary tracking-wide drop-shadow-lg"
       >
         Checkout
       </motion.h1>
 
-      {/* Main Card */}
+      {/* Grid Layout */}
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className={`w-full max-w-6xl rounded-3xl p-10 flex flex-col gap-12 ${bgCard}`}
+        className={`grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto`}
       >
-        {/* Table Info */}
+        {/* Left Column: Order Summary */}
         <motion.div
           initial={{ opacity: 0, x: -25 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex justify-center"
+          className={`col-span-2 rounded-3xl p-8 flex flex-col gap-8 ${bgCard}`}
         >
-          {orderTypeLocal === "dineIn" ? (
-            <p className="px-6 py-3 rounded-xl bg-green-600 text-white font-semibold text-lg shadow-md">
-              Table Number: {tableNumber}
-            </p>
-          ) : (
-            <p className="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-md">
-              Order Type: Take Away
-            </p>
-          )}
-        </motion.div>
-
-        {/* Order Items */}
-        <div>
-          <h2 className="text-3xl font-bold mb-6 text-dark-primary">Your Order</h2>
-
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              show: {
-                opacity: 1,
-                y: 0,
-                transition: { staggerChildren: 0.1 },
-              },
-            }}
-            className="flex flex-col gap-5"
-          >
-            {items.map((item) => (
-              <motion.div
-                key={item.id}
-                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-                className={`flex items-center justify-between p-5 rounded-2xl shadow-lg hover:scale-[1.01] transition-transform ${bgCard}`}
-              >
-                <div className="flex items-center gap-4">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded-2xl shadow-md"
-                  />
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-lg">{item.name}</span>
-                    <span className="font-bold opacity-80">{item.price} EGP</span>
-                    <span className="text-sm opacity-70">Qty: {item.quantity || 1}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-
-            {items.length === 0 && (
-              <p className="text-center opacity-70 text-lg">Your cart is empty.</p>
+          {/* Table Info */}
+          <div className="flex justify-center mb-6">
+            {orderTypeLocal === "dineIn" ? (
+              <p className="px-6 py-3 rounded-xl bg-green-600 text-white font-semibold text-lg shadow-md">
+                Table Number: {tableNumber}
+              </p>
+            ) : (
+              <p className="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-md">
+                Order Type: Take Away
+              </p>
             )}
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Shipping Form */}
-        <div>
-          <h2 className="text-3xl font-bold mb-6 text-dark-primary">Enter Shipping Details</h2>
+          {/* Order Items */}
+          <div>
+            <h2 className="text-3xl font-bold mb-6 text-dark-primary text-center lg:text-left">Your Order</h2>
+            <div className="flex flex-col gap-4 max-h-96 overflow-y-auto pr-2">
+              {items.map((item) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex items-center justify-between p-4 rounded-2xl shadow-lg hover:scale-[1.02] transition-transform ${bgCard}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-20 h-20 object-cover rounded-2xl shadow-md"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-lg">{item.name}</span>
+                      <span className="font-bold opacity-80">{item.price} EGP</span>
+                      <span className="text-sm opacity-70">Qty: {item.quantity || 1}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              {items.length === 0 && (
+                <p className="text-center opacity-70 text-lg">Your cart is empty.</p>
+              )}
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-6">
-            {[{ icon: <FaUser />, name: "name", placeholder: "Full Name" },
-              { icon: <FaEnvelope />, name: "email", placeholder: "Email" },
-              { icon: <FaPhone />, name: "phone", placeholder: "Phone Number" },
-              { icon: <FaMapMarkerAlt />, name: "address", placeholder: "Address" }
-            ].map((f, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className={`flex flex-col gap-2`}
-              >
+          {/* Shipping Form */}
+          <div>
+            <h2 className="text-3xl font-bold mb-6 text-dark-primary text-center lg:text-left">Shipping Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[{ icon: <FaUser />, name: "name", placeholder: "Full Name" },
+                { icon: <FaEnvelope />, name: "email", placeholder: "Email" },
+                { icon: <FaPhone />, name: "phone", placeholder: "Phone Number" },
+                { icon: <FaMapMarkerAlt />, name: "address", placeholder: "Address" }
+              ].map((f, idx) => (
+                <motion.div key={idx} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                  <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
+                    {f.icon}
+                    <input
+                      name={f.name}
+                      value={form[f.name]}
+                      placeholder={f.placeholder}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
+                    />
+                  </div>
+                  {errors[f.name] && (
+                    <span className="text-red-500 text-sm ml-2">{errors[f.name]}</span>
+                  )}
+                </motion.div>
+              ))}
+
+              {/* Payment */}
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
-                  {f.icon}
-                  <input
-                    name={f.name}
-                    value={form[f.name]}
-                    placeholder={f.placeholder}
+                  <FaCreditCard />
+                  <select
+                    name="payment"
+                    value={form.payment}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
-                  />
+                  >
+                    <option value="">Payment Method</option>
+                    <option value="cash">Cash</option>
+                    <option value="card">Credit Card</option>
+                    <option value="vodafone">Vodafone Cash</option>
+                  </select>
                 </div>
-                {errors[f.name] && (
-                  <span className="text-red-500 text-sm ml-2">{errors[f.name]}</span>
+                {errors.payment && (
+                  <span className="text-red-500 text-sm ml-2">{errors.payment}</span>
                 )}
               </motion.div>
-            ))}
-
-            {/* Payment */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-              <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
-                <FaCreditCard />
-                <select
-                  name="payment"
-                  value={form.payment}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
-                >
-                  <option value="">Payment Method</option>
-                  <option value="cash">Cash</option>
-                  <option value="card">Credit Card</option>
-                  <option value="vodafone">Vodafone Cash</option>
-                </select>
-              </div>
-              {errors.payment && (
-                <span className="text-red-500 text-sm ml-2">{errors.payment}</span>
-              )}
-            </motion.div>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Summary */}
+        {/* Right Column: Summary & Place Order */}
         <motion.div
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`rounded-3xl p-6 shadow-xl flex flex-col gap-6 ${bgCard}`}
+          initial={{ opacity: 0, x: 25 }}
+          animate={{ opacity: 1, x: 0 }}
+          className={`col-span-1 rounded-3xl p-6 flex flex-col gap-6 sticky top-24 ${bgCard} h-fit`}
         >
           <h2 className="text-3xl font-bold text-center text-dark-primary">Order Summary</h2>
 
-          {items.map((item) => (
-            <div key={item.id} className="flex justify-between opacity-90">
-              <span>{item.name}</span>
-              <span>{item.price} EGP</span>
-            </div>
-          ))}
+          <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+            {items.map((item) => (
+              <div key={item.id} className="flex justify-between opacity-90">
+                <span>{item.name}</span>
+                <span>{item.price} EGP</span>
+              </div>
+            ))}
+          </div>
 
           <div className="flex justify-between font-bold text-xl border-t pt-4 text-dark-primary">
             <span>Total</span>

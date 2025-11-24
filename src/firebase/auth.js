@@ -3,26 +3,27 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  sendEmailVerification
+  sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 // ----------------------
-// REGISTER USER WITH EMAIL VERIFICATION
+// REGISTER USER
 // ----------------------
 export const registerUser = async (email, password, name) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
-  // إرسال رابط التحقق على الإيميل
   await sendEmailVerification(user);
 
-  // تخزين المستخدم في Firestore + role = user
   await setDoc(doc(db, "users", user.uid), {
     name,
     email,
     avatar: "",
-    role: "user",
+    role: "user",  // كل مستخدم جديد role = user
     createdAt: new Date(),
   });
 
@@ -37,16 +38,40 @@ export const loginUser = async (email, password) => {
   const user = userCredential.user;
 
   if (!user.emailVerified) {
-    throw new Error("Please verify your email before logging in.");
+    const error = new Error("Please verify your email before logging in.");
+    error.user = user;
+    throw error;
   }
 
-  // قراءة بيانات Firestore
   const userDoc = await getDoc(doc(db, "users", user.uid));
   if (userDoc.exists()) {
-    return { ...user, ...userDoc.data() }; 
+    return { ...user, ...userDoc.data() };  // هيرجع الـ role كمان
   }
 
   return user;
+};
+
+// ----------------------
+// LOGIN WITH GOOGLE
+// ----------------------
+export const loginWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
+
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (!userDoc.exists()) {
+    await setDoc(doc(db, "users", user.uid), {
+      name: user.displayName || "",
+      email: user.email,
+      avatar: user.photoURL || "",
+      role: "user",
+      createdAt: new Date(),
+    });
+    return { ...user, role: "user" };
+  } else {
+    return { ...user, ...userDoc.data() }; // هيرجع الـ role
+  }
 };
 
 // ----------------------
@@ -57,18 +82,17 @@ export const logoutUser = async () => {
 };
 
 // ----------------------
-// GET USER DATA
+// RESEND VERIFICATION EMAIL
 // ----------------------
-export const getUserData = async (uid) => {
-  const docRef = doc(db, "users", uid);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : null;
+export const resendVerificationEmail = async (user) => {
+  if (user && !user.emailVerified) {
+    await sendEmailVerification(user);
+  }
 };
 
 // ----------------------
-// UPDATE USER DATA
+// RESET PASSWORD
 // ----------------------
-export const updateUserData = async (uid, data) => {
-  const docRef = doc(db, "users", uid);
-  await setDoc(docRef, data, { merge: true });
+export const resetPassword = async (email) => {
+  await sendPasswordResetEmail(auth, email);
 };
