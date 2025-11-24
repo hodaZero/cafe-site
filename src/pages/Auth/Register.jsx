@@ -8,13 +8,9 @@ const Register = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const [successMsg, setSuccessMsg] = useState(""); // رسالة التحقق
+  const [successMsg, setSuccessMsg] = useState("");
   const [submitError, setSubmitError] = useState("");
 
   const handleChange = (e) => {
@@ -31,10 +27,8 @@ const Register = () => {
   const validatePassword = (password) => {
     if (!password) return "Password is required";
     if (password.length < 6) return "Password must be at least 6 characters";
-    if (!/[A-Z]/.test(password) && !/[a-z]/.test(password))
-      return "Password must contain letters";
-    if (!/[0-9]/.test(password))
-      return "Password must contain at least one number";
+    if (!/[A-Za-z]/.test(password)) return "Password must contain letters";
+    if (!/[0-9]/.test(password)) return "Password must contain a number";
     return "";
   };
 
@@ -76,9 +70,7 @@ const Register = () => {
       : "bg-dark-surface bg-opacity-90 text-dark-text";
 
   const inputBorder =
-    theme === "light"
-      ? "border-light-inputBorder"
-      : "border-dark-inputBorder";
+    theme === "light" ? "border-light-inputBorder" : "border-dark-inputBorder";
 
   const primaryBtn =
     theme === "light"
@@ -86,7 +78,7 @@ const Register = () => {
       : "bg-dark-primary hover:bg-dark-primaryHover text-dark-text";
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center">
+    <div className="min-h-screen relative flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundPic})` }}
@@ -94,11 +86,11 @@ const Register = () => {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
       <div
-        className={`relative z-10 p-14 rounded-xl shadow-xl w-full max-w-md transition-colors duration-300 ${cardBg}`}
+        className={`relative z-10 p-10 sm:p-12 rounded-xl shadow-xl w-full max-w-sm transition-colors duration-300 ${cardBg}`}
       >
-        <h2 className="text-3xl font-bold mb-8 text-center">Register</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">Register</h2>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <input
               type="text"
@@ -106,11 +98,9 @@ const Register = () => {
               placeholder="Enter your name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
+              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg ${inputBorder}`}
             />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-            )}
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
 
           <div>
@@ -120,11 +110,9 @@ const Register = () => {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
+              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg ${inputBorder}`}
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
@@ -134,7 +122,7 @@ const Register = () => {
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
-              className={`w-full px-6 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-lg ${inputBorder}`}
+              className={`w-full px-4 py-2 sm:py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary text-base sm:text-lg ${inputBorder}`}
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -143,7 +131,7 @@ const Register = () => {
 
           <button
             type="submit"
-            className={`w-full py-3 rounded-md transition text-lg font-semibold ${primaryBtn}`}
+            className={`w-full py-2 sm:py-3 rounded-md transition text-base sm:text-lg font-semibold ${primaryBtn}`}
           >
             Register
           </button>
@@ -152,7 +140,7 @@ const Register = () => {
         {submitError && <p className="text-red-500 mt-4 text-center">{submitError}</p>}
         {successMsg && <p className="text-green-500 mt-4 text-center">{successMsg}</p>}
 
-        <p className="text-center mt-6 text-lg">
+        <p className="text-center mt-4 text-base sm:text-lg">
           Already have an account?{" "}
           <a
             href="/login"

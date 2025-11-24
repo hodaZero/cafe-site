@@ -23,6 +23,8 @@ export default function Navbar() {
     return () => unsubscribe();
   }, []);
 
+  const isVerifiedUser = user && user.emailVerified;   // ⭐ أهم تعديل
+
   const handleLogout = async () => {
     await logoutUser();
     navigate("/login");
@@ -49,49 +51,36 @@ export default function Navbar() {
 
   const renderLinks = () => (
     <>
-      <Link
-        to="/"
-        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
-        onClick={() => setOpen(false)}
-      >
+      <Link to="/" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
         HOME
       </Link>
 
-      <Link
-        to="/menu"
-        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
-        onClick={() => setOpen(false)}
-      >
+      <Link to="/menu" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
         MENU
       </Link>
 
-      <Link
-        to="/orders"
-        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
-        onClick={() => setOpen(false)}
-      >
-        My Orders
-      </Link>
+      {isVerifiedUser && (
+        <Link to="/orders" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
+          My Orders
+        </Link>
+      )}
 
-      {/* ✔ تمت إضافة الرابط هنا */}
-      <Link
-        to="/tables"
-        className={`transition-colors duration-300 px-3 py-1 ${linkClass}`}
-        onClick={() => setOpen(false)}
-      >
+      <Link to="/tables" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
         Tables
       </Link>
 
-      {!user ? (
-        <>
-          <Link
-            to="/login"
-            onClick={() => setOpen(false)}
-            className={`px-4 py-1 rounded-md transition ${theme === "dark" ? "bg-dark-surface text-white hover:bg-dark-primary/20" : "bg-light-surface text-black hover:bg-light-primary/20"}`}
-          >
-            Login
-          </Link>
-        </>
+      {!isVerifiedUser ? (
+        <Link
+          to="/login"
+          onClick={() => setOpen(false)}
+          className={`px-4 py-1 rounded-md transition ${
+            theme === "dark"
+              ? "bg-dark-surface text-white hover:bg-dark-primary/20"
+              : "bg-light-surface text-black hover:bg-light-primary/20"
+          }`}
+        >
+          Login
+        </Link>
       ) : (
         <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>
           Logout
@@ -102,10 +91,17 @@ export default function Navbar() {
 
   const renderIcons = () => (
     <>
-      <IconButton Icon={Heart} count={favoritesCount} onClick={() => user ? navigate("/favorites") : navigate("/login")} />
-      <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />
+      {isVerifiedUser && (
+        <IconButton Icon={Heart} count={favoritesCount} onClick={() => navigate("/favorites")} />
+      )}
+
+      {isVerifiedUser && (
+        <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />
+      )}
+
       <ThemeToggle />
-      {user && (
+
+      {isVerifiedUser && (
         <button onClick={() => navigate("/profile")}>
           <img
             src={user.photoURL || "https://i.pravatar.cc/100"}
@@ -120,7 +116,7 @@ export default function Navbar() {
   return (
     <header className={`fixed w-full z-50 transition-colors duration-300 ${headerClass}`}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        
+
         <Link to="/" className="flex items-center gap-3">
           <motion.img
             src={logo}
@@ -161,7 +157,9 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}>
+        <div className={`md:hidden transition-colors duration-300 ${
+          theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"
+        }`}>
           <div className="flex flex-col gap-2 py-2 px-4">
             {renderLinks()}
             <div className="flex items-center gap-4 mt-2">
