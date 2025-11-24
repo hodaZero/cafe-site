@@ -1,8 +1,8 @@
-// src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
+import { useAuth } from "./context/AuthContext";
 
 // Pages
 import Login from "./pages/Auth/Login";
@@ -21,44 +21,126 @@ import DashboardLayout from "./pages/Dashboard/DashboardLayout";
 import ProductsDashboard from "./pages/Dashboard/ProductsDashboard";
 import Orders from "./pages/Orders";
 import AdminProfile from "./pages/Dashboard/AdminProfile";
+import ForgotPassword from "./pages/Auth/ForgotPssword";
 
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? children : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }) {
+  const { user, role, loading } = useAuth();
+  if (loading) return null;
+  return user && role === "admin" ? children : <Navigate to="/" />;
+}
+
 function AppContent() {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith("/admin");
+  const { user, role } = useAuth();
+  const isAdminRoute = window.location.pathname.startsWith("/admin");
 
   return (
     <>
       {!isAdminRoute && <Navbar />}
 
-      {isAdminRoute ? (
-        <DashboardLayout>
-          <Routes>
-            <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/products" element={<ProductsDashboard />} />
-            <Route path="/admin/tables" element={<AdminTables />} />
-            <Route path="/admin/profile" element={<AdminProfile />} />
-          </Routes>
-        </DashboardLayout>
-      ) : (
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/tables" element={<UserTables />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404 - Page Not Found</h1>} />
-        </Routes>
-      )}
+      <Routes>
+        {/* Public pages */}
+        {!user && <Route path="/login" element={<Login />} />}
+        {!user && <Route path="/register" element={<Register />} />}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        {/* User protected routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/favorites"
+          element={
+            <PrivateRoute>
+              <Favorites />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <Orders />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/tables"
+          element={
+            <PrivateRoute>
+              <UserTables />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Admin protected routes */}
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminRoute>
+              <DashboardLayout>
+                <AdminOrders />
+              </DashboardLayout>
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/products"
+          element={
+            <AdminRoute>
+              <DashboardLayout>
+                <ProductsDashboard />
+              </DashboardLayout>
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/tables"
+          element={
+            <AdminRoute>
+              <DashboardLayout>
+                <AdminTables />
+              </DashboardLayout>
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/profile"
+          element={
+            <AdminRoute>
+              <DashboardLayout>
+                <AdminProfile />
+              </DashboardLayout>
+            </AdminRoute>
+          }
+        />
+
+        <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404</h1>} />
+      </Routes>
 
       {!isAdminRoute && <Footer />}
     </>
