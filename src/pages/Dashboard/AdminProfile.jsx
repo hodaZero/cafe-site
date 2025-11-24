@@ -1,160 +1,179 @@
 import React, { useEffect, useState } from "react";
-import { onAuthStateChanged, updateProfile, signOut } from "firebase/auth";
-import { auth } from "../../firebase/firebaseConfig"; 
-import { FaEdit, FaSignOutAlt } from "react-icons/fa";
-import { uploadImage } from "../../sevices/storage_sevices"; // خدمة رفع الصور
+import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
+import { uploadImage } from "../../sevices/storage_sevices";
+import { updateUser } from "../../firebase/usersServices"; // نفس الخدمة بتاعت User Profile
 
 export default function AdminProfile() {
   const [user, setUser] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [displayName, setDisplayName] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [localImage, setLocalImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [name, setName] = useState("");
 
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const STATIC_AVATAR =
+    "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+
+  // متابعة حالة تسجيل الدخول
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        setDisplayName(currentUser.displayName || "Admin");
-      } else {
-        setUser(null);
-      }
+        setName(currentUser.displayName || "Admin");
+      } else setUser(null);
     });
-
     return () => unsubscribe();
   }, []);
 
-  const handleFileChange = (e) => {
+  // اختيار صورة جديدة
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setSelectedFile(file);
-    setPreview(URL.createObjectURL(file));
+    setLocalImage(URL.createObjectURL(file));
   };
 
+  // حفظ التعديلات
   const handleSave = async () => {
     if (!user) return;
-    let photoURL = user.photoURL;
+    try {
+      setUploading(true);
+      let photoURL = user.photoURL;
 
-    // رفع الصورة إذا تم اختيارها
-    if (selectedFile) {
-      setUploadingImage(true);
-      try {
-        photoURL = await uploadImage("admin_profiles", selectedFile);
-      } catch (err) {
-        console.error("Error uploading profile image:", err);
-      } finally {
-        setUploadingImage(false);
+      // رفع الصورة إذا تم اختيارها
+      if (localImage) {
+        const fileInput = document.getElementById("adminImageInput").files[0];
+        if (fileInput) {
+          photoURL = await uploadImage("admin_cafe", fileInput);
+          await updateProfile(auth.currentUser, { photoURL });
+        }
       }
-    }
 
-    // تحديث الاسم والصورة في Firebase Auth
-    await updateProfile(user, { displayName, photoURL });
-    setUser({ ...user, displayName, photoURL });
-    setIsEditing(false);
-    setSelectedFile(null);
-    setPreview(null);
+      // تحديث الاسم
+      if (name !== user.displayName) {
+        await updateProfile(auth.currentUser, { displayName: name });
+      }
+
+      // تحديث Firestore
+      await updateUser(auth.currentUser.uid, { name, photoURL });
+
+      // تحديث الـ state
+      setUser({ ...auth.currentUser, displayName: name, photoURL });
+      setLocalImage(null);
+      setModalOpen(false);
+    } catch (err) {
+      console.error("Error updating admin profile:", err);
+    } finally {
+      setUploading(false);
+    }
   };
 
+  // تسجيل الخروج
   const handleLogout = async () => {
     await signOut(auth);
-    window.location.href = "/login";
+    navigate("/login");
   };
 
-  if (!user) return <p className="text-white p-6 text-center mt-20">Not logged in</p>;
+  const cardBg = theme === "light" ? "bg-light-surface text-light-text" : "bg-dark-surface text-dark-text";
+
+  const btnStyle = theme === "light"
+    ? "bg-light-primary hover:bg-light-primaryHover text-black"
+    : "bg-dark-primary hover:bg-dark-primaryHover text-white";
+
+  if (!user) return <p className="text-center mt-20">Loading...</p>;
 
   return (
-    <div className="flex justify-center items-center min-h-screen relative bg-black">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(https://via.placeholder.com/800x600)`,
-          filter: "brightness(0.3)",
-        }}
-      ></div>
-      <div className="absolute inset-0 bg-black/70"></div>
-
-      <div className="relative flex bg-white shadow-2xl rounded-xl w-full max-w-xl overflow-hidden z-10">
+    <div className={`flex justify-center items-center min-h-screen p-6 ${theme === "light" ? "bg-light-background" : "bg-dark-background"}`}>
+      <div className={`rounded-xl shadow-lg p-8 w-full max-w-md flex flex-col items-center gap-6 ${cardBg}`}>
         {/* صورة الادمن */}
-        <div className="flex-shrink-0 relative">
-          <img
-            src={preview || user.photoURL || "https://via.placeholder.com/150"}
-            alt="Admin"
-            className="w-32 h-32 object-cover rounded-l-xl"
-          />
-          {isEditing && (
-            <label className="absolute bottom-0 right-0 bg-gray-200 p-1 rounded-full cursor-pointer border border-gray-400">
-              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
-              ✎
-            </label>
-          )}
+        <img
+          src={user.photoURL || STATIC_AVATAR}
+          alt="Admin Avatar"
+          className="w-28 h-28 rounded-full object-cover shadow-md"
+        />
+
+        {/* بيانات الادمن */}
+        <div className="w-full space-y-2 text-center">
+          <p>
+            <span className="font-semibold">Name: </span>
+            {user.displayName || "Admin"}
+          </p>
+          <p>
+            <span className="font-semibold">Email: </span>
+            {user.email}
+          </p>
         </div>
 
-        <div className="p-6 flex-1 relative">
-          {!isEditing && (
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm"
-              >
-                <FaEdit /> Edit
-              </button>
+        {/* زر Edit */}
+        <button
+          onClick={() => setModalOpen(true)}
+          className={`mt-2 px-6 py-2 rounded-lg font-semibold transition ${btnStyle}`}
+        >
+          Edit Profile
+        </button>
 
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 flex items-center gap-1 text-sm"
-              >
-                <FaSignOutAlt /> Logout
-              </button>
-            </div>
-          )}
+        {/* زر Logout */}
+        <button
+          onClick={handleLogout}
+          className={`mt-2 px-6 py-2 rounded-lg font-semibold transition ${btnStyle}`}
+        >
+          Logout
+        </button>
+      </div>
 
-          <h2 className="text-2xl font-bold mb-4 text-black">Admin Profile</h2>
+      {/* Modal لتعديل البيانات */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className={`rounded-xl p-6 w-full max-w-md flex flex-col gap-4 ${theme === "light" ? "bg-light-surface text-light-text" : "bg-dark-surface text-dark-text"}`}>
+            <h2 className="text-xl font-semibold text-center">Edit Admin Profile</h2>
 
-          <div className="space-y-3 text-black">
-            <div>
-              <label className="block text-sm font-medium mb-1">Name:</label>
-              {isEditing ? (
+            <div className="flex flex-col items-center gap-4">
+              <img
+                src={localImage || user.photoURL || STATIC_AVATAR}
+                alt="Admin Avatar"
+                className="w-24 h-24 rounded-full object-cover shadow-md"
+              />
+              <label className="cursor-pointer bg-dark-primary text-white px-4 py-2 rounded-lg hover:bg-dark-primaryHover transition">
+                Choose New Photo
                 <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2"
+                  id="adminImageInput"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
                 />
-              ) : (
-                <p className="text-lg font-medium">{user.displayName || "Admin"}</p>
-              )}
+              </label>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Email:</label>
-              <p className="text-lg font-medium">{user.email}</p>
-            </div>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Name"
+              className={`w-full p-2 border rounded ${theme === "light" ? "bg-light-input text-light-text border-light-inputBorder" : "bg-dark-input text-dark-text border-dark-inputBorder"}`}
+            />
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Role:</label>
-              <p className="text-lg font-medium">Admin</p>
-            </div>
-          </div>
-
-          {isEditing && (
-            <div className="mt-4 flex gap-2">
+            <div className="flex justify-between mt-2">
               <button
-                onClick={handleSave}
-                className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                {uploadingImage ? "Uploading..." : "Save"}
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="px-5 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
+                onClick={() => setModalOpen(false)}
+                className={`px-4 py-2 rounded-lg ${theme === "light" ? "bg-gray-300 text-black" : "bg-gray-700 text-white"}`}
               >
                 Cancel
               </button>
+              <button
+                onClick={handleSave}
+                disabled={uploading}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${btnStyle}`}
+              >
+                {uploading ? "Saving..." : "Save"}
+              </button>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

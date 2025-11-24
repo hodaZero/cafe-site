@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { motion } from "framer-motion";
+import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 import logo from "../assets/images/coffee_logo.png";
 import ThemeToggle from "./ThemeToggle";
-import { FaUserCircle } from "react-icons/fa";
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen: setIsOpenProp }) {
   const { pathname } = useLocation();
   const { theme } = useTheme();
+  const [isOpenLocal, setIsOpenLocal] = useState(false);
+
+  const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenLocal;
+  const setIsOpen = isOpenProp !== undefined ? setIsOpenProp : setIsOpenLocal;
 
   const links = [
     { name: "Products", path: "/admin/products" },
@@ -24,46 +27,108 @@ export default function Sidebar() {
 
   const linkText = theme === "light" ? "text-light-text" : "text-dark-text";
   const linkHover =
-    theme === "light" ? "hover:bg-light-primary/20" : "hover:bg-dark-primary/20";
+    theme === "light"
+      ? "hover:bg-light-primary/20"
+      : "hover:bg-dark-primary/20";
+
   const activeBg =
     theme === "light"
       ? "bg-light-primary text-black font-semibold"
       : "bg-dark-primary text-black font-semibold";
 
   return (
-    <div className={`w-64 ${sidebarBg} border-r p-4 min-h-screen`}>
-      <div className="text-center mb-6">
-        {/* Logo */}
-        <div className="flex items-center gap-1 mb-6">
-          <motion.img
-            src={logo}
-            alt="logo"
-            className="h-8 w-8 rounded-xl shadow-md"
-            initial={{ scale: 0, rotate: -20, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            whileHover={{ scale: 1.1, rotate: 3 }}
+    <>
+      {/* Mobile Sidebar Button */}
+      {isMobileTrigger && (
+        <button
+          className="p-2 rounded-md border bg-white dark:bg-dark-surface shadow-lg"
+          onClick={() => setIsOpen(true)}
+        >
+          <FaBars size={20} />
+        </button>
+      )}
+
+      {/* Mobile Drawer */}
+      {isOpen && (
+        <div className="md:hidden">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999]"
+            onClick={() => setIsOpen(false)}
           />
-          <motion.span
-            className="text-2xl font-bold"
-            style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px" }}
-            initial={{ x: -15, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-            whileHover={{ scale: 1.05 }}
+          <div
+            className={`fixed top-0 left-0 h-full w-64 p-4 border-r ${sidebarBg} z-[9999]`}
           >
-            <motion.span className="text-light-primary"> D</motion.span>
-            omi <motion.span className="text-light-primary">C</motion.span>afe
-          </motion.span>
+            <SidebarContent
+              pathname={pathname}
+              activeBg={activeBg}
+              linkHover={linkHover}
+              linkText={linkText}
+              links={links}
+              logo={logo}
+              setIsOpen={setIsOpen}
+            />
+            <button
+              className="absolute top-4 right-4"
+              onClick={() => setIsOpen(false)}
+            >
+              <FaTimes size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <div
+        className={`hidden md:flex flex-col w-64 p-4 border-r ${sidebarBg} min-h-screen z-20`}
+      >
+        <SidebarContent
+          pathname={pathname}
+          activeBg={activeBg}
+          linkHover={linkHover}
+          linkText={linkText}
+          links={links}
+          logo={logo}
+          setIsOpen={() => {}}
+        />
+      </div>
+    </>
+  );
+}
+
+function SidebarContent({
+  pathname,
+  activeBg,
+  linkHover,
+  linkText,
+  links,
+  logo,
+  setIsOpen,
+}) {
+  return (
+    <>
+      <div className="text-center mb-6">
+        <div className="flex items-center gap-2 justify-between mb-6">
+          <img src={logo} alt="logo" className="h-8 w-8 rounded-xl shadow-md" />
+
+          <span
+            className="text-2xl font-bold"
+            style={{ fontFamily: "'Playwrite CZ', cursive" }}
+          >
+            <span className="text-light-primary">D</span>omi{" "}
+            <span className="text-light-primary">C</span>afe
+          </span>
+
           <ThemeToggle />
         </div>
 
-        {/* Admin Profile icon (أعلى Sidebar) */}
         <Link
           to="/admin/profile"
-          className={`flex items-center justify-start gap-2 mb-6 px-2 py-1 rounded-lg ${
-            pathname === "/admin/profile" ? activeBg : `${linkHover} ${linkText}`
+          className={`flex items-center gap-2 mb-6 px-2 py-1 rounded-lg ${
+            pathname === "/admin/profile"
+              ? activeBg
+              : `${linkHover} ${linkText}`
           }`}
+          onClick={() => setIsOpen(false)}
         >
           <FaUserCircle size={18} />
           <span className="font-medium text-sm">Profile</span>
@@ -78,13 +143,13 @@ export default function Sidebar() {
               className={`block py-2 px-3 rounded-lg ${
                 pathname === l.path ? activeBg : `${linkHover} ${linkText}`
               }`}
+              onClick={() => setIsOpen(false)}
             >
               {l.name}
             </Link>
           </li>
         ))}
       </ul>
-    </div>
+    </>
   );
 }
-
