@@ -49,20 +49,26 @@ export default function ProductForm({ form, setForm, onSubmit, categories, loadi
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-     let imageUrl = form.image;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validate()) return;
+
+  let imageUrl = form.image;
+
+  // 2) If user selected a file, upload it
   if (selectedFile) {
     imageUrl = await handleImageUpload();
-    if (!imageUrl) return;
+    if (!imageUrl) return; // Upload failed
   }
+
   const finalData = {
     ...form,
     image: imageUrl,
   };
+  console.log("Final Data to submit:", finalData);
+  onSubmit(finalData);
+};
 
-  if (validate()) onSubmit(finalData);
-  };
 
   const inputBg = theme === "light"
     ? "bg-light-input text-light-text border-light-inputBorder"
