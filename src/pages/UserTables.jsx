@@ -18,7 +18,6 @@ const UserTables = () => {
   const floors = ["Upstairs", "Downstairs"];
 
   const bgMain = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
-  const headingColor = theme === "light" ? "text-light-heading" : "text-dark-heading";
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -61,34 +60,32 @@ const UserTables = () => {
     setTableToReserve(null);
   };
 
-  const renderStatusBadge = (table) => {
-    if (table.status === "pending" && !table.approved) {
-      return <span className="px-2 py-1 rounded-md bg-yellow-400 text-black font-semibold text-sm">Pending Approval</span>;
-    }
-    if (table.status === "pending" && table.approved) {
-      return <span className="px-2 py-1 rounded-md bg-green-500 text-white font-semibold text-sm">Admin Approved</span>;
-    }
-    if (table.status === "occupied") {
-      return <span className="px-2 py-1 rounded-md bg-gray-500 text-white font-semibold text-sm">Occupied</span>;
-    }
-    return null;
-  };
-
   const countStatus = (floor, status) => tables.filter(t => t.floor === floor && t.status === status).length;
 
   return (
     <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
-      <h1 className={`text-4xl font-bold mb-8 text-center drop-shadow-lg ${headingColor}`}>Select Your Table</h1>
+      <h1 className={`text-4xl font-bold mb-8 text-center drop-shadow-lg`}>
+        Select Your Table
+      </h1>
 
       {floors.map(floor => (
         <div key={floor} className="w-full max-w-6xl mb-12">
-          <h2 className={`text-2xl font-semibold mb-4 ${headingColor}`}>{floor}</h2>
+          {/* عنوان الـ Floor باللون البرتقالي */}
+          <h2 className="text-2xl font-semibold mb-4" style={{ color: "#B45309" }}>
+            {floor}
+          </h2>
 
           {/* Filter / Summary */}
           <div className="flex justify-center items-center gap-6 mb-6 flex-wrap">
-            <div className="px-4 py-2 rounded-xl bg-green-500 font-semibold shadow-md text-white">Available: {countStatus(floor, "available")}</div>
-            <div className="px-4 py-2 rounded-xl bg-gray-500 font-semibold shadow-md text-white">Occupied: {countStatus(floor, "occupied")}</div>
-            <div className="px-4 py-2 rounded-xl bg-yellow-400 font-semibold shadow-md text-black">Pending: {countStatus(floor, "pending")}</div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 font-semibold shadow-md text-black">
+              Available: {countStatus(floor, "available")}
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 font-semibold shadow-md text-black">
+              Occupied: {countStatus(floor, "occupied")}
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-400 font-semibold shadow-md text-black">
+              Pending: {countStatus(floor, "pending")}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -96,11 +93,20 @@ const UserTables = () => {
               .filter(t => t.floor === floor)
               .sort((a, b) => a.tableNumber - b.tableNumber)
               .map(table => (
-                <motion.div key={table.id} whileHover={{ scale: 1.05 }} className="transition-transform relative cursor-pointer" onClick={() => handleSelectTable(table)}>
+                <motion.div
+                  key={table.id}
+                  whileHover={{ scale: table.status === "available" ? 1.05 : 1 }}
+                  className="transition-transform relative cursor-pointer"
+                  onClick={() => handleSelectTable(table)}
+                >
                   <TableCard table={table} selected={selectedTable?.id} />
-                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-                    {renderStatusBadge(table)}
-                  </div>
+
+                  {/* الرسالة البسيطة تحت الكارد: فقط Pending */}
+                  {table.status === "pending" && (
+                    <p className="text-center mt-2 text-sm font-semibold" style={{ color: "#B45309" }}>
+                      {!table.approved ? "Pending Approval" : "Admin Approved"}
+                    </p>
+                  )}
                 </motion.div>
               ))}
           </div>
@@ -113,7 +119,7 @@ const UserTables = () => {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className={`bg-white dark:bg-[#1a1a1a] text-black dark:text-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center gap-6`}
+            className="bg-white dark:bg-[#1a1a1a] text-black dark:text-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center gap-6"
           >
             <h2 className="text-2xl font-bold text-center">Reserve Table</h2>
             <p className="mb-6">Do you want to reserve Table {tableToReserve.tableNumber}?</p>

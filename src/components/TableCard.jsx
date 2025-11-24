@@ -5,40 +5,63 @@ const TableCard = ({ table, selected }) => {
   const { theme } = useTheme();
   const isSelected = selected === table.id;
 
-  const bg = isSelected
-    ? theme === "light"
-      ? "bg-light-primary border-2 border-black"
-      : "bg-dark-primary border-2 border-white"
-    : theme === "light"
-    ? "bg-light-surface border border-light-inputBorder"
-    : "bg-dark-surface border border-dark-inputBorder";
+  // الخلفية الأساسية حسب الثيم
+  const baseBg = theme === "light"
+    ? "bg-light-surface"
+    : "bg-dark-surface";
 
-  const textColor = isSelected
-    ? "text-black font-semibold"
-    : theme === "light"
+  // لون النصوص
+  const textColor = theme === "light"
     ? "text-light-text"
     : "text-dark-text";
 
-  const statusText = table.status === "available" ? "Available" : "Occupied";
+  // شادو حسب حالة الترابيزة
+  const shadowColor =
+    table.status === "available"
+      ? "shadow-[0_0_8px_1px_rgba(34,197,94,0.5)]"
+      : table.status === "occupied"
+      ? "shadow-[0_0_8px_1px_rgba(239,68,68,0.5)]"
+      : table.status === "pending"
+      ? "shadow-[0_0_8px_1px_rgba(245,158,11,0.5)]"
+      : "";
+
+  const hoverEffect = table.status === "available" ? "hover:scale-105" : "";
+
+  // نص الحالة
+  const statusText =
+    table.status === "available"
+      ? "Available"
+      : table.status === "pending"
+      ? "Pending"
+      : "Occupied";
+
+  const statusTextColor =
+    table.status === "available"
+      ? "text-green-600"
+      : table.status === "occupied"
+      ? "text-red-600"
+      : "text-yellow-600";
 
   return (
     <div
-      className={`flex flex-col items-center p-4 rounded-2xl shadow-lg transition-transform transform hover:scale-105 cursor-pointer ${bg}`}
+      className={`flex flex-col items-center p-3 rounded-2xl
+        transition-transform transform duration-200 cursor-pointer border
+        ${baseBg} ${shadowColor} ${hoverEffect}`}
     >
-      <div className="flex justify-center mb-3">
+      <div className="flex justify-center mb-2">
         <img
-          src={table.image || "https://images.unsplash.com/photo-1599423300746-b62533397364?w=400&q=80"}
+          src={table.image || "https://www.gettyimages.com/detail/photo/cafe-tables-and-chairs-royalty-free-image/84743808"}
           alt={`Table ${table.tableNumber || table.id}`}
-          className="w-24 h-24 object-cover rounded-md"
+          className="w-20 h-20 object-cover rounded-full"
         />
       </div>
 
-      <h2 className={`text-xl font-semibold mb-1 text-center ${textColor}`}>
+      <h2 className={`text-lg font-semibold mb-1 text-center ${textColor}`}>
         Table {table.tableNumber || table.id}
       </h2>
 
-      <p className={`text-lg font-medium ${textColor}`}>
-        {isSelected ? "Selected" : statusText}
+      <p className={`text-sm font-bold ${statusTextColor} text-center`}>
+        {statusText}
       </p>
     </div>
   );
