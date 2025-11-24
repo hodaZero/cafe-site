@@ -51,6 +51,7 @@ function AppContent() {
         {/* Public pages */}
         <Route path="/login" element={<Login />} />   
         <Route path="/register" element={<Register />} /> 
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* User protected routes */}
@@ -75,6 +76,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/cart"
           element={
@@ -93,6 +95,7 @@ function AppContent() {
           }
         
         />
+
 
         <Route
           path="/orders"
