@@ -44,16 +44,22 @@ export default function ProductsDashboard() {
     setFilteredProducts(data);
   }, [search, filterCategory, filterPrice, products]);
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    if(editingId) await updateDoc(doc(db, "products", editingId), form);
-    else await addDoc(productsRef, {...form, createdAt:Date.now()});
-    setForm({ name:"", price:"", category:categories[0], image:"", prepTime:"", description:"", rating:0 });
-    setEditingId(null);
-    setShowFormModal(false);
-    await fetchProducts();
-    setLoading(false);
-  };
+ const handleSubmit = async (data) => {  // ← استخدم data بدل form
+  setLoading(true);
+
+  if(editingId) {
+    await updateDoc(doc(db, "products", editingId), data);  // ← data تحتوي على رابط الصورة
+  } else {
+    await addDoc(productsRef, {...data, createdAt:Date.now()}); // ← data مع الصورة
+  }
+
+  setForm({ name:"", price:"", category:categories[0], image:"", prepTime:"", description:"", rating:0 });
+  setEditingId(null);
+  setShowFormModal(false);
+  await fetchProducts();
+  setLoading(false);
+};
+
 
   const handleEdit = (p) => { setForm({...p}); setEditingId(p.id); setShowFormModal(true); };
   const handleDelete = async () => { 
@@ -121,7 +127,14 @@ export default function ProductsDashboard() {
           <div className={`p-6 rounded-2xl shadow-lg relative w-[90%] max-w-2xl transition-colors duration-300 ${cardBg}`}>
             <button onClick={()=>setShowFormModal(false)} className="absolute top-3 right-4 text-2xl hover:text-primary">&times;</button>
             <h2 className="text-2xl font-bold text-center mb-4 text-primary">{editingId ? "Edit Product" : "Add Product"}</h2>
-            <ProductForm form={form} setForm={setForm} onSubmit={handleSubmit} categories={categories} loading={loading}/>
+          <ProductForm
+  form={form}
+  setForm={setForm}
+  onSubmit={(finalData) => handleSubmit(finalData)}  
+  categories={categories}
+  loading={loading}
+/>
+
           </div>
         </div>
       )}
