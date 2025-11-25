@@ -1,4 +1,3 @@
-// AdminOrders.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Search,
@@ -24,6 +23,7 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import Pagination from "../components/Pagination"; // تأكدي من المسار الصحيح
 
 export default function AdminOrders() {
   const { theme } = useTheme();
@@ -36,6 +36,10 @@ export default function AdminOrders() {
   const [showModal, setShowModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; // عدد الأوردرات لكل صفحة
 
   const fetchOrders = async () => {
     let allOrders = [];
@@ -114,6 +118,13 @@ export default function AdminOrders() {
           ))
     );
   }, [orders, category, statusFilter, search]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedOrders = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const totalOrders = orders.length; // شامل كل الأوردرات
   const totalSalary = orders
@@ -214,7 +225,7 @@ export default function AdminOrders() {
 
       {/* Orders Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((order) => {
+        {paginatedOrders.map((order) => {
           const isOpen = activeTab === order.id;
 
           return (
@@ -335,6 +346,15 @@ export default function AdminOrders() {
           );
         })}
       </div>
+
+      {/* Pagination */}
+      {filtered.length > itemsPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      )}
 
       {/* Delete Modal */}
       {showModal && orderToDelete && (
