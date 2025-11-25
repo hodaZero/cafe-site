@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { db } from "../../firebase/firebaseConfig";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import ProductCard from "../../components/ProductCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import ProductForm from "../../components/ProductForm";
 import { useTheme } from "../../context/ThemeContext";
+import Pagination from "../../components/Pagination";
 
 export default function ProductsDashboard() {
   const { theme } = useTheme();
@@ -22,9 +23,11 @@ export default function ProductsDashboard() {
   const [selectedId, setSelectedId] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; 
+
   const productsRef = collection(db, "products");
 
-  // جلب المنتجات وترتيب الأحدث أولاً
   const fetchProducts = async () => {
     const snap = await getDocs(productsRef);
     const arr = snap.docs.map(d => ({ id:d.id, ...d.data() }));
@@ -42,24 +45,32 @@ export default function ProductsDashboard() {
     if(filterPrice==="LowToHigh") data.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price));
     else if(filterPrice==="HighToLow") data.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price));
     setFilteredProducts(data);
+    setCurrentPage(1);
   }, [search, filterCategory, filterPrice, products]);
 
- const handleSubmit = async (data) => {  // ← استخدم data بدل form
-  setLoading(true);
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredProducts.slice(start, end);
+  }, [filteredProducts, currentPage]);
 
-  if(editingId) {
-    await updateDoc(doc(db, "products", editingId), data);  // ← data تحتوي على رابط الصورة
-  } else {
-    await addDoc(productsRef, {...data, createdAt:Date.now()}); // ← data مع الصورة
-  }
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  setForm({ name:"", price:"", category:categories[0], image:"", prepTime:"", description:"", rating:0 });
-  setEditingId(null);
-  setShowFormModal(false);
-  await fetchProducts();
-  setLoading(false);
-};
+  const handleSubmit = async (data) => {
+    setLoading(true);
 
+    if(editingId) {
+      await updateDoc(doc(db, "products", editingId), data);
+    } else {
+      await addDoc(productsRef, {...data, createdAt:Date.now()});
+    }
+
+    setForm({ name:"", price:"", category:categories[0], image:"", prepTime:"", description:"", rating:0 });
+    setEditingId(null);
+    setShowFormModal(false);
+    await fetchProducts();
+    setLoading(false);
+  };
 
   const handleEdit = (p) => { setForm({...p}); setEditingId(p.id); setShowFormModal(true); };
   const handleDelete = async () => { 
@@ -70,10 +81,13 @@ export default function ProductsDashboard() {
     await fetchProducts(); 
   };
 
+  // ثيمات
   const bgMain = theme==="light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
   const cardBg = theme==="light" ? "bg-light-surface" : "bg-dark-surface";
   const inputBg = theme==="light" ? "bg-light-input text-light-text border-light-inputBorder" : "bg-dark-input text-dark-text border-dark-inputBorder";
   const btnPrimary = theme==="light" ? "bg-light-primary text-black hover:bg-light-primaryHover" : "bg-dark-primary text-black hover:bg-dark-primaryHover";
+  const btnEdit = theme==="light" ? "bg-light-primary text-black hover:bg-light-primaryHover transition-colors duration-200" : "bg-dark-primary text-white hover:bg-dark-primaryHover transition-colors duration-200";
+  const btnDelete = theme==="light" ? "bg-red-500 text-white hover:bg-red-600 transition-colors duration-200" : "bg-red-600 text-white hover:bg-red-700 transition-colors duration-200";
 
   return (
     <div className={`pt-16 min-h-screen p-6 transition-colors duration-300 ${bgMain}`}>
@@ -104,19 +118,21 @@ export default function ProductsDashboard() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {filteredProducts.map(p => (
+        {paginatedProducts.map(p => (
           <div key={p.id} className={`relative rounded-2xl overflow-hidden shadow-lg transition-transform transform hover:scale-105 ${cardBg}`}>
-            {/* الكارد نفسه */}
-            <ProductCard product={p} />
-            
-            {/* أزرار Edit/Delete */}
+            <ProductCard product={p} showCart={false} hideFavorite={true} />
             <div className="flex justify-center gap-3 mt-3 px-3 pb-3">
-              <button onClick={()=>handleEdit(p)} className="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 shadow-md transition-all duration-200 transform hover:scale-105">Edit</button>
-              <button onClick={()=>{setSelectedId(p.id); setShowModal(true);}} className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 shadow-md transition-all duration-200 transform hover:scale-105">Delete</button>
+              <button onClick={()=>handleEdit(p)} className={`px-4 py-2 rounded-lg font-semibold shadow-md transition-all duration-200 transform hover:scale-105 ${btnEdit}`}>Edit</button>
+              <button onClick={()=>{setSelectedId(p.id); setShowModal(true);}} className={`px-4 py-2 rounded-lg font-semibold shadow-md transition-all duration-200 transform hover:scale-105 ${btnDelete}`}>Delete</button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      )}
 
       {/* Confirm Modal */}
       {showModal && <ConfirmModal message="Are you sure you want to delete this product?" onCancel={()=>setShowModal(false)} onConfirm={handleDelete}/>}
@@ -127,14 +143,13 @@ export default function ProductsDashboard() {
           <div className={`p-6 rounded-2xl shadow-lg relative w-[90%] max-w-2xl transition-colors duration-300 ${cardBg}`}>
             <button onClick={()=>setShowFormModal(false)} className="absolute top-3 right-4 text-2xl hover:text-primary">&times;</button>
             <h2 className="text-2xl font-bold text-center mb-4 text-primary">{editingId ? "Edit Product" : "Add Product"}</h2>
-          <ProductForm
-  form={form}
-  setForm={setForm}
-  onSubmit={(finalData) => handleSubmit(finalData)}  
-  categories={categories}
-  loading={loading}
-/>
-
+            <ProductForm
+              form={form}
+              setForm={setForm}
+              onSubmit={(finalData) => handleSubmit(finalData)}  
+              categories={categories}
+              loading={loading}
+            />
           </div>
         </div>
       )}

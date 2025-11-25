@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import { getProducts } from "../firebase/firestore";
 import { useTheme } from "../context/ThemeContext";
+import Pagination from "./Pagination"; 
 
 const ProductList = () => {
   const { theme } = useTheme();
@@ -90,19 +91,11 @@ const ProductList = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-2 mt-6">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i + 1)}
-            className={`px-3 py-1 rounded border ${borderColor} ${
-              currentPage === i + 1 ? `${btnBg} ${btnText}` : `${bgColor} ${textColor}`
-            } ${btnHover} transition-colors`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };
