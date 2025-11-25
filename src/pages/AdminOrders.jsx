@@ -1,5 +1,5 @@
-// --- ADMIN ORDERS (FINAL VERSION) WITH TOTAL SALARY + CORRECT QTY + TABLE NUMBER ---
-import React, { useState, useEffect } from "react";
+// AdminOrders.jsx
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Search,
   Bell,
@@ -10,6 +10,8 @@ import {
   CheckCircle,
   XCircle,
   Trash2,
+  FileText,
+  DollarSign
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { db } from "../firebase/firebaseConfig";
@@ -33,25 +35,21 @@ export default function AdminOrders() {
 
   const [showModal, setShowModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
-
   const [showClearModal, setShowClearModal] = useState(false);
 
   const fetchOrders = async () => {
     let allOrders = [];
-
     const usersRef = collection(db, "users");
     const usersSnap = await getDocs(usersRef);
 
     for (let userDoc of usersSnap.docs) {
       const userId = userDoc.id;
-
       const ordersRef = collection(db, "users", userId, "orders");
       const q = query(ordersRef, orderBy("createdAt", "desc"));
       const ordersSnap = await getDocs(q);
 
       ordersSnap.forEach((ord) => {
         const data = ord.data();
-
         allOrders.push({
           id: ord.id,
           userId,
@@ -63,7 +61,6 @@ export default function AdminOrders() {
     }
 
     allOrders.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
-
     setOrders(allOrders);
   };
 
@@ -74,7 +71,6 @@ export default function AdminOrders() {
   const handleStatusChange = async (order, newStatus) => {
     const ref = doc(db, "users", order.userId, "orders", order.id);
     await updateDoc(ref, { status: newStatus });
-
     setOrders((prev) =>
       prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
     );
@@ -82,10 +78,8 @@ export default function AdminOrders() {
 
   const handleDeleteOrder = async () => {
     if (!orderToDelete) return;
-
     const ref = doc(db, "users", orderToDelete.userId, "orders", orderToDelete.id);
     await deleteDoc(ref);
-
     setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
     setOrderToDelete(null);
     setShowModal(false);
@@ -106,65 +100,79 @@ export default function AdminOrders() {
         (order) => order.status !== "completed" && order.status !== "rejected"
       )
     );
-
     setShowClearModal(false);
   };
 
-  const filtered = orders.filter(
-    (order) =>
-      (category === "All" || order.category === category) &&
-      (statusFilter === "All" || order.status === statusFilter) &&
-      order.items.some((it) =>
-        it.name.toLowerCase().includes(search.toLowerCase())
-      )
-  );
+  const filtered = useMemo(() => {
+    return orders.filter(
+      (order) =>
+        (category === "All" || order.category === category) &&
+        (statusFilter === "All" || order.status === statusFilter) &&
+        (order.customerName.toLowerCase().includes(search.toLowerCase()) ||
+          order.items.some((it) =>
+            it.name.toLowerCase().includes(search.toLowerCase())
+          ))
+    );
+  }, [orders, category, statusFilter, search]);
+
+  const totalOrders = orders.length; // شامل كل الأوردرات
+  const totalSalary = orders
+    .filter((o) => o.status === "completed")
+    .reduce((acc, o) => acc + (o.total || 0), 0);
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
 
-  const bgMain =
-    theme === "light" ? "bg-gray-100 text-gray-900" : "bg-dark-surface text-white";
-  const inputBg =
-    theme === "light"
-      ? "bg-white text-black border-gray-300"
-      : "bg-black text-white border-[#2c2c2c]";
-  const tabActive =
-    theme === "light" ? "bg-primary text-black" : "bg-[#D3AD7F] text-black";
-  const tabInactive =
-    theme === "light"
-      ? "bg-white text-gray-600 hover:bg-gray-200"
-      : "bg-dark-surface text-gray-400 hover:bg-[#222]";
-  const cardBg =
-    theme === "light" ? "bg-white border-gray-200" : "bg-black border-[#2a2a2a]";
-  const cardText = theme === "light" ? "text-gray-900" : "text-white";
-  const subText = theme === "light" ? "text-gray-500" : "text-gray-400";
-
   return (
-    <div className={`pt-16 min-h-screen p-6 font-sans ${bgMain}`}>
-      {/* Header */}
+    <div className={`pt-16 min-h-screen p-6 font-sans bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text`}>
+      
+      {/* Top Summary Card */}
+      <div className="mb-6 flex flex-col md:flex-row gap-6">
+        <div className="flex-1 rounded-2xl p-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-xl text-white flex flex-col justify-center hover:scale-105 transform transition">
+          <div className="flex items-center gap-3 mb-2">
+            <FileText size={24} />
+            <p className="text-sm font-semibold">Total Orders</p>
+          </div>
+          <p className="text-4xl font-bold">{totalOrders}</p>
+        </div>
+
+        <div className="flex-1 rounded-2xl p-6 bg-gradient-to-r from-green-400 to-teal-500 shadow-xl text-white flex flex-col justify-center hover:scale-105 transform transition">
+          <div className="flex items-center gap-3 mb-2">
+            <DollarSign size={24} />
+            <p className="text-sm font-semibold">Total Revenue</p>
+          </div>
+          <p className="text-4xl font-bold">{totalSalary} EGP</p>
+        </div>
+      </div>
+
+      {/* Header Search & Filters */}
       <div className="flex justify-between items-center mb-6 flex-wrap">
         <div className="flex items-center gap-3 w-full md:w-2/3">
           <div className="relative flex-1">
-            <Search className={`absolute left-3 top-2.5 ${subText}`} size={16} />
+            <Search
+              className="absolute left-3 top-2.5 text-light-text dark:text-dark-text opacity-60"
+              size={16}
+            />
             <input
-              className={`w-full pl-10 pr-3 py-2 rounded-md text-sm focus:outline-none ${inputBg}`}
-              placeholder="Search..."
+              className="w-full pl-10 pr-3 py-2 rounded-md text-sm focus:outline-none bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder text-light-text dark:text-dark-text"
+              placeholder="Search by customer or item..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
           <div className="flex items-center gap-2 mt-2 md:mt-0">
-            {[
-              { name: "All", icon: <LayoutGrid size={16} /> },
+            {[{ name: "All", icon: <LayoutGrid size={16} /> },
               { name: "Dessert", icon: <CakeSlice size={16} /> },
-              { name: "Drink", icon: <Coffee size={16} /> },
+              { name: "Drink", icon: <Coffee size={16} /> }
             ].map((cat) => (
               <button
                 key={cat.name}
                 onClick={() => setCategory(cat.name)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-md text-xs font-medium ${
-                  category === cat.name ? tabActive : tabInactive
-                }`}
+                className={`flex items-center gap-1 px-3 py-2 rounded-md text-xs font-medium transition
+                  ${category === cat.name
+                    ? "bg-light-primary text-white dark:bg-dark-primary"
+                    : "bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text border border-light-inputBorder dark:border-dark-inputBorder"
+                  }`}
               >
                 {cat.icon}
                 {cat.name}
@@ -172,7 +180,7 @@ export default function AdminOrders() {
             ))}
 
             <select
-              className={`ml-2 px-2 py-2 text-xs rounded-md ${inputBg}`}
+              className="ml-2 px-2 py-2 text-xs rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder text-light-text dark:text-dark-text"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -185,19 +193,15 @@ export default function AdminOrders() {
         </div>
 
         <div className="flex items-center gap-3 mt-2 md:mt-0">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              theme === "light" ? "bg-gray-300 text-black" : "bg-gray-700 text-white"
-            }`}
-          >
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-light-inputBorder dark:bg-dark-inputBorder text-light-text dark:text-dark-text">
             <User size={16} />
           </div>
-          <p className="text-sm text-gray-300">Admin Panel</p>
-          <Bell className="text-gray-400" size={18} />
+          <p className="text-sm opacity-70">Admin Panel</p>
+          <Bell className="opacity-60" size={18} />
         </div>
       </div>
 
-      {/* Clear Completed/Rejected */}
+      {/* Clear Completed Button */}
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setShowClearModal(true)}
@@ -208,189 +212,161 @@ export default function AdminOrders() {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {orders.map((o) => (
-          <button
-            key={o.id}
-            onClick={() => setActiveTab(activeTab === o.id ? null : o.id)}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              activeTab === o.id ? tabActive : tabInactive
-            }`}
-          >
-            #{o.id}
-          </button>
-        ))}
-      </div>
-
       {/* Orders Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered
-          .filter((order) => !activeTab || order.id === activeTab)
-          .map((order) => (
+        {filtered.map((order) => {
+          const isOpen = activeTab === order.id;
+
+          return (
             <div
               key={order.id}
-              className={`rounded-xl p-4 shadow-lg border hover:shadow-xl transition-all ${cardBg} relative`}
+              className={`rounded-xl p-4 shadow-lg border bg-light-surface dark:bg-dark-surface border-light-inputBorder dark:border-dark-inputBorder transition-all duration-300`}
             >
-              {/* Delete */}
-              <button
-                onClick={() => {
-                  setOrderToDelete(order);
-                  setShowModal(true);
-                }}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-600"
-              >
-                <Trash2 size={20} />
-              </button>
-
-              {/* Order Header */}
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className={`text-sm font-medium ${cardText}`}>
-                    Order #{order.id}
+              {/* Header */}
+              <div className="flex justify-between items-start mb-3">
+                <div className="pr-3 flex-1">
+                  <p className="text-sm font-semibold text-light-text dark:text-dark-text truncate">
+                    {order.customerName}
                   </p>
-                  <p className={`text-xs ${subText}`}>
-                    {order.createdAt?.toDate().toLocaleString()}
+                  <p className="text-xs mt-1 font-medium text-light-text dark:text-dark-text">
+                    <span className="text-[10px] uppercase tracking-wide text-light-primary dark:text-dark-primary">
+                      {order.customerEmail ? "CUSTOMER" : "GUEST"}
+                    </span>{" "}
+                    •{" "}
+                    <span className="opacity-70">
+                      {order.createdAt?.toDate().toLocaleString()}
+                    </span>
                   </p>
-
-                  <p className={`text-xs mt-1 font-semibold ${cardText}`}>
-                    Customer:{" "}
-                    <span className="text-primary">{order.customerName}</span>
-                  </p>
-
-                  {order.customerEmail && (
-                    <p className={`text-xs ${subText}`}>{order.customerEmail}</p>
-                  )}
-
-                  {/* ⭐ ADDED TABLE NUMBER HERE ⭐ */}
-                  <p className={`text-xs mt-1 font-semibold ${cardText}`}>
+                  <p className="text-xs mt-2 font-semibold">
                     Table:{" "}
-                    <span className="text-primary">
+                    <span className="text-light-primary dark:text-dark-primary">
                       {order.tableNumber ? `Table ${order.tableNumber}` : "Take Away"}
                     </span>
                   </p>
+                  <p className="text-xs mt-1 opacity-70">
+                    Status: <span className="font-semibold">{order.status}</span>
+                  </p>
                 </div>
-
-                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-black font-bold">
-                  {getInitial(order.customerName)}
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-light-primary dark:bg-dark-primary text-white">
+                    {getInitial(order.customerName)}
+                  </div>
+                  <button
+                    onClick={() => { setOrderToDelete(order); setShowModal(true); }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </div>
 
-              {/* Items */}
-              {order.items.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 mb-3">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div className="flex flex-col w-full">
-                    <p className={`text-sm font-semibold ${cardText}`}>
-                      {item.name}
-                    </p>
+              {/* Details + Status */}
+              <div className="flex items-center justify-between gap-3 mt-2">
+                <button
+                  onClick={() => setActiveTab(isOpen ? null : order.id)}
+                  className={`flex-1 py-2 px-3 rounded-md font-semibold transition
+                    ${isOpen
+                      ? "bg-light-primary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-primary"
+                      : "bg-light-surface dark:bg-dark-surface border border-light-inputBorder dark:border-dark-inputBorder text-light-primary dark:text-dark-primary"}
+                    hover:bg-light-primary/30 hover:dark:bg-dark-primary/30`}
+                >
+                  {isOpen ? "Hide Details" : "Details"}
+                </button>
 
-                    <p className={`text-xs ${subText}`}>Qty: {item.quantity}</p>
-
-                    <p className={`text-xs ${subText}`}>
-                      {item.price} EGP × {item.quantity} ={" "}
-                      <span className="font-semibold">
-                        {item.price * item.quantity} EGP
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              <hr
-                className={`border ${
-                  theme === "light" ? "border-gray-300" : "border-gray-600"
-                } mb-2`}
-              />
-
-              <p className={`text-sm font-bold mb-2 ${cardText}`}>
-                Total Salary:{" "}
-                <span className="text-primary">{order.total} EGP</span>
-              </p>
-
-              {/* Status */}
-              <div className="flex justify-between items-center">
-                <div className={`text-xs ${subText}`}>
-                  Status:{" "}
-                  <span className="font-semibold capitalize">{order.status}</span>
-                </div>
-
-                <div className="flex gap-2">
+                <div className="ml-2 flex items-center gap-2">
                   {order.status === "pending" ? (
                     <>
-                      <button
-                        onClick={() => handleStatusChange(order, "completed")}
-                        className="text-green-500"
-                      >
-                        <CheckCircle size={20} />
+                      <button onClick={() => handleStatusChange(order, "completed")} className="p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20">
+                        <CheckCircle size={18} className="text-green-600"/>
                       </button>
-                      <button
-                        onClick={() => handleStatusChange(order, "rejected")}
-                        className="text-red-500"
-                      >
-                        <XCircle size={20} />
+                      <button onClick={() => handleStatusChange(order, "rejected")} className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20">
+                        <XCircle size={18} className="text-red-600"/>
                       </button>
                     </>
                   ) : order.status === "completed" ? (
-                    <span className="text-green-500 font-semibold">Completed</span>
+                    <span className="text-green-600 font-semibold">Completed</span>
                   ) : (
-                    <span className="text-red-500 font-semibold">Rejected</span>
+                    <span className="text-red-600 font-semibold">Rejected</span>
                   )}
                 </div>
               </div>
+
+              {/* Animated Details */}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[1500px] opacity-100" : "max-h-0 opacity-0"}`}>
+                <div className="pt-3 transition-all">
+                  {order.items.map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 mb-3">
+                      <img src={item.image} alt={item.name} className="w-12 h-12 rounded-md object-cover border border-light-inputBorder dark:border-dark-inputBorder"/>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm font-medium">{item.name}</p>
+                          <p className="text-sm font-semibold">{item.price * item.quantity} EGP</p>
+                        </div>
+                        <div className="flex items-center justify-between text-xs mt-1 opacity-70">
+                          <p>Qty: {item.quantity}</p>
+                          <p>{item.price} EGP × {item.quantity}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <hr className="border-light-inputBorder dark:border-dark-inputBorder my-2"/>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-sm font-bold">Total</p>
+                    <p className="text-sm font-bold text-light-primary dark:text-dark-primary">{order.total} EGP</p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 mt-3">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleStatusChange(order, "completed")} className="px-3 py-1 rounded-md text-sm bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                        Mark Completed
+                      </button>
+                      <button onClick={() => handleStatusChange(order, "rejected")} className="px-3 py-1 rounded-md text-sm bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                        Reject
+                      </button>
+                    </div>
+                    <button onClick={() => { setOrderToDelete(order); setShowModal(true); }} className="px-3 py-1 rounded-md text-sm bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+          );
+        })}
       </div>
 
-      {/* Delete Single */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white dark:bg-black p-6 rounded-lg w-80 text-center">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Are you sure you want to delete this order?
-            </h3>
-            <div className="flex justify-around mt-4">
-              <button
-                onClick={handleDeleteOrder}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
+      {/* Delete Modal */}
+      {showModal && orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowModal(false); setOrderToDelete(null); }} />
+          <div className="relative z-60 max-w-md w-full p-6 rounded-2xl shadow-2xl bg-light-surface dark:bg-dark-surface border-t-4 border-light-primary dark:border-dark-primary">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-md flex items-center justify-center text-white font-bold bg-light-primary dark:bg-dark-primary">!</div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Delete Order</h3>
+                <p className="text-sm opacity-70">Are you sure you want to delete the order for <span className="font-semibold">{orderToDelete.customerName}</span>? This action cannot be undone.</p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => { setShowModal(false); setOrderToDelete(null); }} className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">Cancel</button>
+              <button onClick={handleDeleteOrder} className="px-4 py-2 rounded-md bg-red-600 text-white">Yes, Delete</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Clear Finished */}
+      {/* Clear Modal */}
       {showClearModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white dark:bg-black p-6 rounded-lg w-80 text-center">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Delete ALL completed & rejected orders?
-            </h3>
-            <div className="flex justify-around mt-4">
-              <button
-                onClick={handleClearFinished}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-              >
-                Yes, Clear All
-              </button>
-              <button
-                onClick={() => setShowClearModal(false)}
-                className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowClearModal(false)} />
+          <div className="relative z-60 max-w-md w-full p-6 rounded-2xl shadow-2xl bg-light-surface dark:bg-dark-surface border-t-4 border-light-primary dark:border-dark-primary">
+            <h3 className="text-lg font-semibold">Delete ALL completed/rejected orders?</h3>
+            <p className="text-sm opacity-70 mb-4">This will permanently remove all completed & rejected orders.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowClearModal(false)} className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">Cancel</button>
+              <button onClick={handleClearFinished} className="px-4 py-2 rounded-md bg-red-600 text-white">Yes, Clear
+All</button>
             </div>
           </div>
         </div>
