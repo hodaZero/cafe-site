@@ -103,18 +103,20 @@ export default function ProductForm({ form, setForm, onSubmit, categories, loadi
         </div>
 
         {/* Price */}
-        <div>
-          <label className="block mb-1 font-medium">Price ($)</label>
-          <input
-            name="price"
-            type="number"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="Enter price"
-            className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} focus:outline-none focus:ring-2 focus:ring-primary transition`}
-          />
-          {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
-        </div>
+       
+<div>
+  <label className="block mb-1 font-medium">Price ($)</label>
+  <input
+    name="price"
+    type="number"
+    min="1" // ← هنا تمنع القيم السالبة أو صفر
+    value={form.price}
+    onChange={handleChange}
+    placeholder="Enter price"
+    className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} focus:outline-none focus:ring-2 focus:ring-primary transition`}
+  />
+  {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+</div>
 
         {/* Category & Image */}
         <div className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-start gap-4 md:gap-5">
