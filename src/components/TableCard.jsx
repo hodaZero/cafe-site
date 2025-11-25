@@ -50,7 +50,10 @@ const TableCard = ({ table, selected }) => {
     >
       <div className="flex justify-center mb-2">
         <img
-          src={table.image || "https://www.gettyimages.com/detail/photo/cafe-tables-and-chairs-royalty-free-image/84743808"}
+          src={
+            table.image ||
+            "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=900&q=80"
+          }
           alt={`Table ${table.tableNumber || table.id}`}
           className="w-20 h-20 object-cover rounded-full"
         />
@@ -62,6 +65,11 @@ const TableCard = ({ table, selected }) => {
 
       <p className={`text-sm font-bold ${statusTextColor} text-center`}>
         {statusText}
+      </p>
+
+      {/* عدد الكراسي */}
+      <p className={`text-xs font-medium text-center ${textColor} mt-1`}>
+        Seats: {table.seats || 1}
       </p>
     </div>
   );
