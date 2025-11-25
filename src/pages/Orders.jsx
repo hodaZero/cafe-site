@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import OrderItem from "../components/OrderItem";
 import { useTheme } from "../context/ThemeContext";
 import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import Pagination from "../components/Pagination";
 
 export default function Orders() {
   const { theme } = useTheme();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // عدد الأوردرات لكل صفحة
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -32,6 +37,15 @@ export default function Orders() {
 
     fetchOrders();
   }, []);
+
+  // Paginated orders
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return orders.slice(start, end);
+  }, [orders, currentPage]);
+
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
 
   const bg = theme === "light"
     ? "bg-gray-100 text-gray-900"
@@ -66,7 +80,7 @@ export default function Orders() {
       </h1>
 
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
-        {orders.map(order => (
+        {paginatedOrders.map(order => (
           <div
             key={order.id}
             className={`rounded-2xl p-6 shadow-xl border border-gray-300/20 ${cardBg}`}
@@ -102,6 +116,15 @@ export default function Orders() {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }
