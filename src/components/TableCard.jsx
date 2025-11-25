@@ -66,6 +66,11 @@ const TableCard = ({ table, selected }) => {
       <p className={`text-sm font-bold ${statusTextColor} text-center`}>
         {statusText}
       </p>
+
+      {/* عدد الكراسي */}
+      <p className={`text-xs font-medium text-center ${textColor} mt-1`}>
+        Seats: {table.seats || 1}
+      </p>
     </div>
   );
 };

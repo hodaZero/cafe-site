@@ -13,6 +13,8 @@ import {
   DollarSign
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import Pagination from "../components/Pagination";
+
 import { db } from "../firebase/firebaseConfig";
 import {
   collection,
@@ -42,7 +44,7 @@ export default function AdminOrders() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // عدد الأوردرات لكل صفحة
+  const itemsPerPage = 6;
 
   const fetchOrders = async () => {
     let allOrders = [];
@@ -121,7 +123,7 @@ export default function AdminOrders() {
     );
 
     for (let order of finishedOrders) {
-      const ref = doc(db, "users", order.userId, "orders", order.id);
+      const ref = doc(db, order.userId, "orders", order.id);
       await deleteDoc(ref);
     }
 
@@ -151,6 +153,13 @@ export default function AdminOrders() {
     .reduce((acc, o) => acc + (o.total || 0), 0);
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
+
+  // FIXPagination
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
 
   return (
     <div className={`pt-16 min-h-screen p-6 font-sans ${theme === "dark" ? "bg-dark-background text-white" : "bg-light-background text-black"}`}>
@@ -243,7 +252,7 @@ export default function AdminOrders() {
 
       {/* Orders Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredOrders.map((order) => {
+        {currentOrders.map((order) => {
           const isOpen = activeTab === order.id;
 
           return (
@@ -366,7 +375,7 @@ export default function AdminOrders() {
       </div>
 
       {/* Pagination */}
-      {filtered.length > itemsPerPage && (
+      {filteredOrders.length > itemsPerPage && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
