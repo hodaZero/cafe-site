@@ -22,11 +22,14 @@ import {
   doc,
   query,
   orderBy,
+  serverTimestamp
 } from "firebase/firestore";
-import Pagination from "../components/Pagination"; // تأكدي من المسار الصحيح
+import { useNotifications } from "../context/NotificationContext";
 
 export default function AdminOrders() {
   const { theme } = useTheme();
+  const { addNotification } = useNotifications();
+
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -59,7 +62,13 @@ export default function AdminOrders() {
           userId,
           customerName: data.customerName || "Unknown User",
           customerEmail: data.email || "",
-          ...data,
+          items: data.items || [],
+          total: data.total || 0,
+          status: data.status || "pending",
+          orderType: data.orderType || "takeAway",
+          tableNumber: data.tableNumber || "N/A",
+          createdAt: data.createdAt,
+          category: data.category || "All"
         });
       });
     }
@@ -75,9 +84,26 @@ export default function AdminOrders() {
   const handleStatusChange = async (order, newStatus) => {
     const ref = doc(db, "users", order.userId, "orders", order.id);
     await updateDoc(ref, { status: newStatus });
+
     setOrders((prev) =>
       prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
     );
+
+    await addNotification({
+      to: order.userId,
+      from: "admin",
+      type: "order_status",
+      title:
+        newStatus === "completed"
+          ? "Your order is completed"
+          : "Your order has been rejected",
+      body:
+        newStatus === "completed"
+          ? `Your order #${order.id} has been completed successfully.`
+          : `Your order #${order.id} was rejected.`,
+      relatedId: order.id,
+      timestamp: serverTimestamp(),
+    });
   };
 
   const handleDeleteOrder = async () => {
@@ -107,7 +133,7 @@ export default function AdminOrders() {
     setShowClearModal(false);
   };
 
-  const filtered = useMemo(() => {
+  const filteredOrders = useMemo(() => {
     return orders.filter(
       (order) =>
         (category === "All" || order.category === category) &&
@@ -117,26 +143,19 @@ export default function AdminOrders() {
             it.name.toLowerCase().includes(search.toLowerCase())
           ))
     );
-  }, [orders, category, statusFilter, search]);
+  }, [orders, search, statusFilter, category]);
 
-  // Pagination logic
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginatedOrders = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalOrders = orders.length; // شامل كل الأوردرات
-  const totalSalary = orders
+  const totalOrders = orders.length;
+  const totalRevenue = orders
     .filter((o) => o.status === "completed")
     .reduce((acc, o) => acc + (o.total || 0), 0);
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <div className={`pt-16 min-h-screen p-6 font-sans bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text`}>
-      
-      {/* Top Summary Card */}
+    <div className={`pt-16 min-h-screen p-6 font-sans ${theme === "dark" ? "bg-dark-background text-white" : "bg-light-background text-black"}`}>
+
+      {/* Top Summary Cards */}
       <div className="mb-6 flex flex-col md:flex-row gap-6">
         <div className="flex-1 rounded-2xl p-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-xl text-white flex flex-col justify-center hover:scale-105 transform transition">
           <div className="flex items-center gap-3 mb-2">
@@ -145,13 +164,12 @@ export default function AdminOrders() {
           </div>
           <p className="text-4xl font-bold">{totalOrders}</p>
         </div>
-
         <div className="flex-1 rounded-2xl p-6 bg-gradient-to-r from-green-400 to-teal-500 shadow-xl text-white flex flex-col justify-center hover:scale-105 transform transition">
           <div className="flex items-center gap-3 mb-2">
             <DollarSign size={24} />
             <p className="text-sm font-semibold">Total Revenue</p>
           </div>
-          <p className="text-4xl font-bold">{totalSalary} EGP</p>
+          <p className="text-4xl font-bold">{totalRevenue} EGP</p>
         </div>
       </div>
 
@@ -225,7 +243,7 @@ export default function AdminOrders() {
 
       {/* Orders Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedOrders.map((order) => {
+        {filteredOrders.map((order) => {
           const isOpen = activeTab === order.id;
 
           return (
@@ -376,21 +394,21 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Clear Modal */}
+      {/* Clear Finished Modal */}
       {showClearModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowClearModal(false)} />
-          <div className="relative z-60 max-w-md w-full p-6 rounded-2xl shadow-2xl bg-light-surface dark:bg-dark-surface border-t-4 border-light-primary dark:border-dark-primary">
-            <h3 className="text-lg font-semibold">Delete ALL completed/rejected orders?</h3>
-            <p className="text-sm opacity-70 mb-4">This will permanently remove all completed & rejected orders.</p>
+          <div className="relative z-60 max-w-md w-full p-6 rounded-2xl shadow-2xl bg-light-surface dark:bg-dark-surface border-t-4 border-red-600">
+            <h3 className="text-lg font-semibold text-light-text dark:text-dark-text mb-3">Clear Completed/Rejected Orders</h3>
+            <p className="text-sm opacity-70 mb-4">Are you sure you want to delete all completed and rejected orders? This action cannot be undone.</p>
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowClearModal(false)} className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">Cancel</button>
-              <button onClick={handleClearFinished} className="px-4 py-2 rounded-md bg-red-600 text-white">Yes, Clear
-All</button>
+              <button onClick={handleClearFinished} className="px-4 py-2 rounded-md bg-red-600 text-white">Clear</button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
