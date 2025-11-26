@@ -40,10 +40,6 @@ export default function AdminOrders() {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // عدد الأوردرات لكل صفحة
-
   const fetchOrders = async () => {
     let allOrders = [];
     const usersRef = collection(db, "users");
@@ -364,15 +360,6 @@ export default function AdminOrders() {
           );
         })}
       </div>
-
-      {/* Pagination */}
-      {filtered.length > itemsPerPage && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
-      )}
 
       {/* Delete Modal */}
       {showModal && orderToDelete && (
