@@ -374,6 +374,7 @@ export default function AdminOrders() {
         })}
       </div>
 
+
       {/* Pagination */}
       {filteredOrders.length > itemsPerPage && (
         <Pagination

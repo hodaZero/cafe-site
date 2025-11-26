@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { Menu, X, Heart, ShoppingCart, Bell } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
