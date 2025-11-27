@@ -12,7 +12,7 @@ const AdminTables = () => {
   const { addNotification } = useNotifications();
   const [tables, setTables] = useState([]);
   const [modal, setModal] = useState({ show: false, type: "", tableId: null, floor: "" });
-  const [seatsInput, setSeatsInput] = useState(1); // ✅ عدد الكراسي عند الإضافة
+  const [seatsInput, setSeatsInput] = useState(1); 
   const floors = ["Upstairs", "Downstairs"];
 
   const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
@@ -54,7 +54,7 @@ const AdminTables = () => {
     setTables(prev => [...prev, { ...newTable, id: docRef.id }]);
   };
 
-  // تعديل مهم: لما الحالة تبقى available نمسح reservedBy و userName
+  // ⭐ تعديل مهم: لما الحالة تبقى available نمسح reservedBy + نرسل إشعار رفض
   const handleUpdateStatus = async (id, status) => {
     const tableRef = doc(db, "tables", id);
 
@@ -79,18 +79,27 @@ const AdminTables = () => {
     );
 
     const table = tables.find(t => t.id === id);
-    if (table?.reservedBy && status !== "available") {
-      const message =
-        status === "occupied"
-          ? `Your table ${table.tableNumber} has been approved by admin.`
-          : `Your table ${table.tableNumber} reservation has been rejected.`;
 
+    // ⭐⭐ التعديل الوحيد المطلوب → لو التربيزة اترفضت (رجعت available)
+    if (table?.reservedBy && status === "available") {
       await addNotification({
         to: table.reservedBy,
         from: "admin",
         type: "table_status",
-        title: `Table ${table.tableNumber} ${status === "occupied" ? "Approved" : "Rejected"}`,
-        body: message,
+        title: `Table ${table.tableNumber} Rejected`,
+        body: `Your table ${table.tableNumber} reservation has been rejected by admin.`,
+        relatedId: id
+      });
+    }
+
+    // موافقة التربيزة نفس ما هو
+    if (table?.reservedBy && status === "occupied") {
+      await addNotification({
+        to: table.reservedBy,
+        from: "admin",
+        type: "table_status",
+        title: `Table ${table.tableNumber} Approved`,
+        body: `Your table ${table.tableNumber} has been approved by admin.`,
         relatedId: id
       });
     }
@@ -194,7 +203,6 @@ const AdminTables = () => {
               {modal.type === "add" ? "Add new table?" : "Are you sure you want to delete this table?"}
             </h2>
 
-            {/* ✅ إضافة إدخال عدد الكراسي عند الإضافة */}
             {modal.type === "add" && (
               <div className="flex flex-col w-full">
                 <label className="text-sm font-medium mb-1">Number of Seats</label>

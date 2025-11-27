@@ -1,9 +1,9 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { useAuth } from "./context/AuthContext";
-import { NotificationProvider } from "./context/NotificationContext"; // ✅ استدعاء NotificationProvider
+import { NotificationProvider } from "./context/NotificationContext";
 
 // Pages
 import Login from "./pages/Auth/Login";
@@ -41,16 +41,17 @@ function AdminRoute({ children }) {
 }
 
 function AppContent() {
-  const isAdminRoute = window.location.pathname.startsWith("/admin");
+  const location = useLocation(); // استخدم useLocation بدل window.location
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <NotificationProvider>
-      {!isAdminRoute && <Navbar />}
+      {!isAdminRoute && <Navbar />} {/* Navbar يظهر فقط خارج الـ Admin */}
 
       <Routes>
         {/* Public pages */}
-        <Route path="/login" element={<Login />} />   
-        <Route path="/register" element={<Register />} /> 
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* User protected routes */}
@@ -165,5 +166,3 @@ export default function App() {
     </Provider>
   );
 }
-
-
