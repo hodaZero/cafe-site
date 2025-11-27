@@ -9,7 +9,7 @@ import { logoutUser } from "../firebase/auth";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 
-// ⭐⭐ Notification Context ⭐⭐
+//Notification Context
 import { useNotifications } from "../context/NotificationContext";
 
 export default function Navbar() {
@@ -31,7 +31,7 @@ export default function Navbar() {
   const favoritesCount = useSelector((state) => state.favorite.favorites?.length || 0);
   const cartCount = useSelector((state) => state.cart.items?.length || 0);
 
-  // ⭐ إغلاق Notification Popup عند الضغط في أي مكان خارجها
+  // ⭐ إغلاق Notification Popup عند الضغط خارجها
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".notification-popup") && !e.target.closest(".notification-button")) {
@@ -51,7 +51,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logoutUser();
-    navigate("/login");
+    navigate("/auth");
   };
 
   const headerClass = theme === "dark" ? "bg-dark-background/90 text-white shadow-md" : "bg-white text-black shadow";
@@ -95,7 +95,7 @@ export default function Navbar() {
 
       {!isVerifiedUser ? (
         <Link
-          to="/login"
+          to="/auth"
           onClick={() => setOpen(false)}
           className={`px-4 py-1 rounded-md transition ${
             theme === "dark"
@@ -239,8 +239,3 @@ export default function Navbar() {
     </header>
   );
 }
-
-
-
-
-
