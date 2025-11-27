@@ -6,8 +6,7 @@ import { useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
 // Pages
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
+import AuthPage from "./pages/Auth/AuthPage";  // صفحة جديدة فيها Login + Register
 import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
@@ -31,7 +30,7 @@ import Footer from "./components/Footer";
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user ? children : <Navigate to="/login" />;
+  return user ? children : <Navigate to="/auth" />;
 }
 
 function AdminRoute({ children }) {
@@ -41,23 +40,24 @@ function AdminRoute({ children }) {
 }
 
 function AppContent() {
-  const location = useLocation(); // استخدم useLocation بدل window.location
+  const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <NotificationProvider>
-      {!isAdminRoute && <Navbar />} {/* Navbar يظهر فقط خارج الـ Admin */}
+      {!isAdminRoute && <Navbar />}
 
       <Routes>
-        {/* Public pages */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* صفحة موحدة للـ Login + Register */}
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* User protected routes */}
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menu />} />
         <Route path="/product/:id" element={<ProductDetails />} />
+
+        {/* Protected */}
         <Route
           path="/profile"
           element={
@@ -107,7 +107,7 @@ function AppContent() {
           }
         />
 
-        {/* Admin protected routes */}
+        {/* Admin */}
         <Route
           path="/admin/orders"
           element={
