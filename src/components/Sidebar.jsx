@@ -1,27 +1,42 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
+import { FaUserCircle, FaBars, FaTimes, FaBox, FaClipboardList, FaChair, FaSignOutAlt } from "react-icons/fa";
 import { Bell } from "lucide-react";
 import logo from "../assets/images/coffee_logo.png";
 import ThemeToggle from "./ThemeToggle";
 import { useNotifications } from "../context/NotificationContext";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase/firebaseConfig";
 
 export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen: setIsOpenProp }) {
   const { pathname } = useLocation();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [isOpenLocal, setIsOpenLocal] = useState(false);
-  const { notifications, unreadCount, clearAll, deleteNotification, markAsRead } = useNotifications();
+  const { notifications, clearAll, deleteNotification, markAsRead } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
 
   const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenLocal;
   const setIsOpen = isOpenProp !== undefined ? setIsOpenProp : setIsOpenLocal;
 
+  // 🔹 Logout function
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);                // تسجيل الخروج من Firebase
+      navigate("/login", { replace: true }); // التوجيه مباشرة للصفحة بدون الرجوع
+    } catch (err) {
+      console.error("Error logging out:", err);
+    }
+  };
+
   const links = [
-    { name: "Products", path: "/admin/products" },
-    { name: "Orders", path: "/admin/orders" },
-    { name: "Tables", path: "/admin/tables" },
-    { name: "Settings", path: "/admin/settings" },
+    { name: "Profile", path: "/admin/profile", icon: <FaUserCircle size={16} />, isButton: false },
+    { name: "Notification", icon: <Bell size={16} />, isButton: true, onClick: () => setNotifOpen(prev => !prev) },
+    { name: "Products", path: "/admin/products", icon: <FaBox size={16} />, isButton: false },
+    { name: "Orders", path: "/admin/orders", icon: <FaClipboardList size={16} />, isButton: false },
+    { name: "Tables", path: "/admin/tables", icon: <FaChair size={16} />, isButton: false },
+    { name: "Logout", icon: <FaSignOutAlt size={16} />, isButton: true, onClick: handleLogout }, // ✅ Logout شغال
   ];
 
   const sidebarBg = theme === "light" ? "bg-light-surface border-light-inputBorder" : "bg-dark-surface border-dark-inputBorder";
@@ -29,7 +44,7 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
   const linkHover = theme === "light" ? "hover:bg-light-primary/20" : "hover:bg-dark-primary/20";
   const activeBg = theme === "light" ? "bg-light-primary text-black font-semibold" : "bg-dark-primary text-black font-semibold";
 
-  // Close notification popup if click outside
+  // 🔹 Close notification popup if click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".notification-popup") && !e.target.closest(".notification-button")) {
@@ -103,11 +118,11 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
               linkText={linkText}
               links={links}
               logo={logo}
-              setIsOpen={setIsOpen}
               notifOpen={notifOpen}
               setNotifOpen={setNotifOpen}
               NotificationPopup={NotificationPopup}
-              unreadCount={unreadCount}
+              setIsOpen={setIsOpen}
+              navigate={navigate}
             />
             <button className="absolute top-4 right-4" onClick={() => setIsOpen(false)}>
               <FaTimes size={20} />
@@ -124,80 +139,57 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
           linkText={linkText}
           links={links}
           logo={logo}
-          setIsOpen={() => {}}
           notifOpen={notifOpen}
           setNotifOpen={setNotifOpen}
           NotificationPopup={NotificationPopup}
-          unreadCount={unreadCount}
+          navigate={navigate}
         />
       </div>
     </>
   );
 }
 
-function SidebarContent({
-  pathname,
-  activeBg,
-  linkHover,
-  linkText,
-  links,
-  logo,
-  setIsOpen,
-  notifOpen,
-  setNotifOpen,
-  NotificationPopup,
-  unreadCount,
-}) {
+function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, notifOpen, setNotifOpen, NotificationPopup, setIsOpen, navigate }) {
   return (
     <>
-      <div className="text-center mb-6">
-        <div className="flex items-center gap-2 justify-between mb-6">
-          <img src={logo} alt="logo" className="h-8 w-8 rounded-xl shadow-md" />
-          <span className="text-2xl font-bold" style={{ fontFamily: "'Playwrite CZ', cursive" }}>
-            <span className="text-light-primary">D</span>omi <span className="text-light-primary">C</span>afe
-          </span>
-          <ThemeToggle />
-        </div>
-
-        {/* Profile */}
-        <Link
-          to="/admin/profile"
-          className={`flex items-center gap-2 mb-2 px-2 py-1 rounded-lg w-full ${pathname === "/admin/profile" ? activeBg : `${linkHover} ${linkText}`}`}
-          onClick={() => setIsOpen(false)}
-        >
-          <FaUserCircle size={18} />
-          <span className="font-medium text-sm">Profile</span>
-        </Link>
-
-        {/* Notification under Profile, full width like Profile */}
-        <button
-          className={`notification-button flex items-center gap-2 mb-6 px-2 py-1 rounded-lg w-full ${linkHover} ${linkText}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            setNotifOpen((prev) => !prev);
-          }}
-        >
-          <Bell size={18} />
-          <span className="font-medium text-sm">Notification</span>
-          {unreadCount > 0 && (
-            <span className="ml-auto w-5 h-5 rounded-full flex items-center justify-center text-xs bg-light-primary dark:bg-dark-primary text-black dark:text-dark-text">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-        {notifOpen && <NotificationPopup />}
+      <div className="flex items-center justify-between mb-6">
+        <img src={logo} alt="logo" className="h-8 w-8 rounded-xl shadow-md" />
+        <span className="text-2xl font-bold" style={{ fontFamily: "'Playwrite CZ', cursive" }}>
+          <span className="text-light-primary">D</span>omi <span className="text-light-primary">C</span>afe
+        </span>
+        <ThemeToggle />
       </div>
 
       <ul className="space-y-3">
-        {links.map((l) => (
-          <li key={l.path}>
-            <Link
-              to={l.path}
-              className={`block py-2 px-3 rounded-lg ${pathname === l.path ? activeBg : `${linkHover} ${linkText}`}`}
-              onClick={() => setIsOpen(false)}
-            >
-              {l.name}
-            </Link>
+        {links.map((item, index) => (
+          <li key={index}>
+            {item.isButton ? (
+              <button
+                className={`flex items-center gap-2 py-2 px-3 rounded-lg w-full transition-colors ${linkHover} ${linkText}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (item.name === "Notification") {
+                    setNotifOpen(prev => !prev);
+                  } else if (item.onClick) {
+                    item.onClick(); // 🔹 Logout يشتغل مباشرة هنا
+                  }
+                }}
+              >
+                {item.icon}
+                <span className="font-medium text-sm">{item.name}</span>
+              </button>
+            ) : (
+              <Link
+                to={item.path}
+                className={`flex items-center gap-2 py-2 px-3 rounded-lg w-full transition-colors ${
+                  pathname === item.path ? activeBg : `${linkHover} ${linkText}`
+                }`}
+              >
+                {item.icon}
+                <span className="font-medium text-sm">{item.name}</span>
+                {item.name === "Notification" && notifOpen && <NotificationPopup />}
+              </Link>
+            )}
           </li>
         ))}
       </ul>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import TableCard from "../components/TableCard";
 import { useTheme } from "../context/ThemeContext";
-import { useNotifications } from "../context/NotificationContext"; // ✅ استدعاء notifications
+import { useNotifications } from "../context/NotificationContext";
 import { db } from "../firebase/firebaseConfig";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { motion } from "framer-motion";
@@ -9,9 +9,10 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 
 const AdminTables = () => {
   const { theme } = useTheme();
-  const { addNotification } = useNotifications(); // ✅ استخراج دالة الإضافة
+  const { addNotification } = useNotifications();
   const [tables, setTables] = useState([]);
   const [modal, setModal] = useState({ show: false, type: "", tableId: null, floor: "" });
+  const [seatsInput, setSeatsInput] = useState(1); // ✅ عدد الكراسي عند الإضافة
   const floors = ["Upstairs", "Downstairs"];
 
   const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
@@ -46,21 +47,39 @@ const AdminTables = () => {
     return 8;
   };
 
-  const handleAddTable = async (floor) => {
+  const handleAddTable = async (floor, seats) => {
     const tableNumber = getNextTableNumber(floor);
-    const newTable = { floor, status: "available", image: "", tableNumber };
+    const newTable = { floor, status: "available", image: "", tableNumber, seats };
     const docRef = await addDoc(tablesCollection, newTable);
     setTables(prev => [...prev, { ...newTable, id: docRef.id }]);
   };
 
-  // ✅ تعديل handleUpdateStatus لإرسال إشعار
+  // تعديل مهم: لما الحالة تبقى available نمسح reservedBy و userName
   const handleUpdateStatus = async (id, status) => {
     const tableRef = doc(db, "tables", id);
-    await updateDoc(tableRef, { status });
-    setTables(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+
+    let updateData = { status };
+    if (status === "available") {
+      updateData.reservedBy = null;
+    }
+
+    await updateDoc(tableRef, updateData);
+
+    setTables(prev =>
+      prev.map(t =>
+        t.id === id
+          ? {
+              ...t,
+              status,
+              reservedBy: status === "available" ? null : t.reservedBy,
+              userName: status === "available" ? null : t.userName
+            }
+          : t
+      )
+    );
 
     const table = tables.find(t => t.id === id);
-    if (table?.reservedBy) {
+    if (table?.reservedBy && status !== "available") {
       const message =
         status === "occupied"
           ? `Your table ${table.tableNumber} has been approved by admin.`
@@ -174,12 +193,29 @@ const AdminTables = () => {
             <h2 className="text-2xl font-bold text-center">
               {modal.type === "add" ? "Add new table?" : "Are you sure you want to delete this table?"}
             </h2>
+
+            {/* ✅ إضافة إدخال عدد الكراسي عند الإضافة */}
+            {modal.type === "add" && (
+              <div className="flex flex-col w-full">
+                <label className="text-sm font-medium mb-1">Number of Seats</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={seatsInput}
+                  onChange={(e) => setSeatsInput(parseInt(e.target.value))}
+                  className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-black dark:text-white"
+                />
+              </div>
+            )}
+
             <div className="flex gap-4">
               <button
                 onClick={() => {
-                  if (modal.type === "add") handleAddTable(modal.floor);
+                  if (modal.type === "add") handleAddTable(modal.floor, seatsInput);
                   if (modal.type === "delete") handleDelete(modal.tableId);
                   setModal({ show: false, type: "", tableId: null, floor: "" });
+                  setSeatsInput(1);
                 }}
                 className="px-6 py-2 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-md"
               >
