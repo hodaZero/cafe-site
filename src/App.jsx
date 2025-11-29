@@ -6,7 +6,7 @@ import { useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
 // Pages
-import AuthPage from "./pages/Auth/AuthPage";  // صفحة جديدة فيها Login + Register
+import AuthPage from "./pages/Auth/AuthPage";  
 import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
@@ -22,6 +22,9 @@ import ProductsDashboard from "./pages/Dashboard/ProductsDashboard";
 import Orders from "./pages/Orders";
 import AdminProfile from "./pages/Dashboard/AdminProfile";
 import ForgotPassword from "./pages/Auth/ForgotPssword";
+
+// ⬅⬅⬅  إضافة صفحة الـ Test Analytics
+import TestAnalytics from "./pages/TestAnalytics";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -148,6 +151,9 @@ function AppContent() {
             </AdminRoute>
           }
         />
+
+        {/* صفحة اختبار الأناليتكس */}
+        <Route path="/test-analytics" element={<TestAnalytics />} />
 
         <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404</h1>} />
       </Routes>
