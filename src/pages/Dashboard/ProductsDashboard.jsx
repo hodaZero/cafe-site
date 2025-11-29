@@ -1,3 +1,4 @@
+// src/pages/ProductsDashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { db } from "../../firebase/firebaseConfig";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
@@ -6,6 +7,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import ProductForm from "../../components/ProductForm";
 import { useTheme } from "../../context/ThemeContext";
 import Pagination from "../../components/Pagination";
+import AIChatWindow from "../../components/AIChat/AIChatWindow"; // ✅ دمج الـ AI Chat
 
 export default function ProductsDashboard() {
   const { theme } = useTheme();
@@ -153,6 +155,9 @@ export default function ProductsDashboard() {
           </div>
         </div>
       )}
+
+      {/* ✅ دمج الـ AI Chat Window */}
+      <AIChatWindow />
     </div>
   );
 }
