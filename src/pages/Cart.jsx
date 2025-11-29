@@ -189,14 +189,19 @@ const CartPage = () => {
           </div>
 
           {/* Navigation button */}
-          <button
-            className={`mt-6 w-full font-semibold py-3 rounded-lg transition ${btnPrimary}`}
-            onClick={() =>
-              navigate("/checkout", { state: { items, total } })
-            }
-          >
-            Proceed to Checkout
-          </button>
+      <button
+  className={`mt-6 w-full font-semibold py-3 rounded-lg transition ${btnPrimary}`}
+  onClick={() => {
+    if (!items || items.length === 0) {
+      alert("Your cart is empty! Please add items before checkout.");
+      return;
+    }
+    navigate("/checkout", { state: { items, total } });
+  }}
+>
+  Proceed to Checkout
+</button>
+
         </div>
       </div>
 

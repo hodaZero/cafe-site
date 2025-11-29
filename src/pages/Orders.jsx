@@ -1,44 +1,65 @@
+// src/pages/Orders.jsx
+
 import React, { useEffect, useState, useMemo } from "react";
 import OrderItem from "../components/OrderItem";
 import { useTheme } from "../context/ThemeContext";
 import { db, auth } from "../firebase/firebaseConfig";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
 import Pagination from "../components/Pagination";
+import { generateAnalytics } from "./services/analytics/analyticsEngine";
 
 export default function Orders() {
   const { theme } = useTheme();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // عدد الأوردرات لكل صفحة
+  const itemsPerPage = 5;
+
+  // جلب الأوردرات من Firestore
+  const fetchOrders = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const ordersRef = collection(db, "users", user.uid, "orders");
+      const q = query(ordersRef, orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      const userOrders = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      setOrders(userOrders);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        const ordersRef = collection(db, "users", user.uid, "orders");
-        const q = query(ordersRef, orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-        const userOrders = snapshot.docs.map(docSnap => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
-        setOrders(userOrders);
-      } catch (err) {
-        console.error("Failed to fetch orders:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
   }, []);
 
-  // Paginated orders
+  // دالة لإضافة أوردر وتحديث التوصيات
+  const handlePlaceOrder = async (orderData) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      // 1️⃣ إضافة الأوردر
+      await addDoc(collection(db, "users", user.uid, "orders"), orderData);
+
+      // 2️⃣ تحديث Top Selling تلقائياً
+      await generateAnalytics();
+
+      // 3️⃣ إعادة جلب الأوردرات
+      fetchOrders();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -55,7 +76,7 @@ export default function Orders() {
     ? "bg-white text-gray-900"
     : "bg-[#1a1a1a] text-white";
 
-  const primaryColor = "text-[#D3AD7F]"; // نفس اللون المستخدم في باقي المشروع
+  const primaryColor = "text-[#D3AD7F]";
 
   if (loading)
     return (
@@ -73,8 +94,6 @@ export default function Orders() {
 
   return (
     <div className={`pt-20 min-h-screen px-6 transition-all duration-300 ${bg}`}>
-      
-      {/* Title */}
       <h1 className={`text-4xl font-bold mb-10 text-center ${primaryColor}`}>
         MY ORDERS
       </h1>
@@ -87,7 +106,6 @@ export default function Orders() {
           >
             <OrderItem order={order} />
 
-            {/* Extra details */}
             <div className="mt-4 border-t pt-4 opacity-80 text-sm">
               <p>
                 <span className="font-semibold">Total Salary:</span>{" "}
@@ -117,7 +135,6 @@ export default function Orders() {
         ))}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
