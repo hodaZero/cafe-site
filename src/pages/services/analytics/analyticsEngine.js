@@ -1,40 +1,72 @@
-// src/pages/services/analytics/analyticsEngine.js
 import { db } from "../../../firebase/firebaseConfig";
 import { collection, getDocs, setDoc, doc } from "firebase/firestore";
 
 export const generateAnalytics = async () => {
   try {
-    // 1️⃣ جيب كل اليوزرز
     const usersSnapshot = await getDocs(collection(db, "users"));
     const allOrders = [];
 
-    // 2️⃣ جيب كل الأوردرات لكل يوزر
     for (const userDoc of usersSnapshot.docs) {
       const ordersSnapshot = await getDocs(
         collection(db, "users", userDoc.id, "orders")
       );
-      ordersSnapshot.forEach(orderDoc => allOrders.push(orderDoc.data()));
+      ordersSnapshot.forEach(orderDoc =>
+        allOrders.push({ userId: userDoc.id, ...orderDoc.data() })
+      );
     }
 
-    // 3️⃣ لم كل الـ items
-    const allItems = allOrders.flatMap(order => order.items || []);
+    const allItems = allOrders.flatMap(order => 
+      (order.items || []).map(item => ({
+        name: item.name,
+        quantity: item.quantity || 1,
+        category: item.category || "Unknown",
+        price: item.price || 0,
+        orderType: order.orderType || "Takeaway",
+        createdAt: order.createdAt || null,
+        userId: order.userId
+      }))
+    );
 
-    // 4️⃣ جمع نفس الأصناف مع بعض
-    const topSellers = allItems.reduce((acc, item) => {
-      const existing = acc.find(i => i.id === item.id);
-      if (existing) {
-        existing.quantity += item.quantity || 1;
-      } else {
-        acc.push({ ...item, quantity: item.quantity || 1 });
+    const topSellersMap = {};
+
+    allItems.forEach(item => {
+      if (!topSellersMap[item.name]) {
+        topSellersMap[item.name] = {
+          name: item.name,
+          quantity: 0,
+          category: item.category,
+          totalRevenue: 0,
+          uniqueUsers: new Set(),
+          orderTypes: {},
+          dates: []
+        };
       }
-      return acc;
-    }, []);
+      const record = topSellersMap[item.name];
+      record.quantity += item.quantity;
+      record.totalRevenue += item.quantity * item.price;
+      record.uniqueUsers.add(item.userId);
+      record.orderTypes[item.orderType] = (record.orderTypes[item.orderType] || 0) + item.quantity;
+      if (item.createdAt) record.dates.push(item.createdAt);
+    });
 
-    // 5️⃣ تحديث collection topSeller في Firestore
+    const topSellers = Object.values(topSellersMap).map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      category: item.category,
+      totalRevenue: item.totalRevenue,
+      uniqueUsers: item.uniqueUsers.size,
+      orderTypes: item.orderTypes,
+      dates: item.dates
+    }));
+
+    topSellers.sort((a, b) => b.quantity - a.quantity);
+
     await setDoc(doc(db, "topSeller", "global"), { array: topSellers });
 
     console.log("Top Seller Analytics updated!", topSellers);
+    return topSellers;
   } catch (err) {
     console.error("Error generating analytics:", err);
+    return [];
   }
 };

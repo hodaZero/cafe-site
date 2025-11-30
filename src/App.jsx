@@ -6,7 +6,7 @@ import { useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
 // Pages
-import AuthPage from "./pages/Auth/AuthPage";  
+import AuthPage from "./pages/Auth/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
@@ -23,12 +23,15 @@ import Orders from "./pages/Orders";
 import AdminProfile from "./pages/Dashboard/AdminProfile";
 import ForgotPassword from "./pages/Auth/ForgotPssword";
 
-// ⬅⬅⬅  إضافة صفحة الـ Test Analytics
+// Test Analytics
 import TestAnalytics from "./pages/TestAnalytics";
 
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+
+// Dashboard main page (Admin)
+import Dashboard from "./pages/Dashboard";
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -51,11 +54,11 @@ function AppContent() {
       {!isAdminRoute && <Navbar />}
 
       <Routes>
-        {/* صفحة موحدة للـ Login + Register */}
+        {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Public routes */}
+        {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menu />} />
         <Route path="/product/:id" element={<ProductDetails />} />
@@ -69,6 +72,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/favorites"
           element={
@@ -77,6 +81,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/cart"
           element={
@@ -85,6 +90,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/checkout"
           element={
@@ -93,6 +99,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/orders"
           element={
@@ -101,6 +108,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/tables"
           element={
@@ -110,7 +118,18 @@ function AppContent() {
           }
         />
 
-        {/* Admin */}
+        {/* Admin Pages */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminRoute>
+              <DashboardLayout>
+                <Dashboard />
+              </DashboardLayout>
+            </AdminRoute>
+          }
+        />
+
         <Route
           path="/admin/orders"
           element={
@@ -121,6 +140,7 @@ function AppContent() {
             </AdminRoute>
           }
         />
+
         <Route
           path="/admin/products"
           element={
@@ -131,6 +151,7 @@ function AppContent() {
             </AdminRoute>
           }
         />
+
         <Route
           path="/admin/tables"
           element={
@@ -141,6 +162,7 @@ function AppContent() {
             </AdminRoute>
           }
         />
+
         <Route
           path="/admin/profile"
           element={
@@ -152,7 +174,7 @@ function AppContent() {
           }
         />
 
-        {/* صفحة اختبار الأناليتكس */}
+        {/* Test analytics route */}
         <Route path="/test-analytics" element={<TestAnalytics />} />
 
         <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404</h1>} />

@@ -91,59 +91,64 @@ const CheckoutPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Handle placing order & updating SmartRecommendations
-  const handlePlaceOrder = async () => {
-    if (!validate()) return;
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in.");
+  
+const handlePlaceOrder = async () => {
+  if (!validate()) return;
+  const user = auth.currentUser;
+  if (!user) return alert("You must be logged in.");
 
-    try {
-      // 1️⃣ Add order to Firestore
-      await addDoc(collection(db, "users", user.uid, "orders"), {
-        userId: user.uid,
-        customerName: form.name,
-        email: form.email,
-        phone: form.phone,
-        address: form.address,
-        payment: form.payment,
-        items,
-        total,
-        orderType: orderTypeLocal,
-        tableNumber: orderTypeLocal === "dineIn" ? tableNumber : "N/A",
-        status: "pending",
-        createdAt: new Date(),
-      });
+  try {
+    // 1️⃣ Add order to Firestore فوري
+    await addDoc(collection(db, "users", user.uid, "orders"), {
+      userId: user.uid,
+      customerName: form.name,
+      email: form.email,
+      phone: form.phone,
+      address: form.address,
+      payment: form.payment,
+      items,
+      total,
+      orderType: orderTypeLocal,
+      tableNumber: orderTypeLocal === "dineIn" ? tableNumber : "N/A",
+      status: "pending",
+      createdAt: new Date(),
+    });
 
-      // 2️⃣ Update SmartRecommendations automatically
-      await generateAnalytics();
-      
+    // 2️⃣ Set success message فوراً للمستخدم
+    setSuccess("Order placed successfully!");
+    setTimeout(() => navigate("/orders"), 1500);
 
-      // 3️⃣ Notify admin
-      await addNotification({
-        to: "admin",
-        from: user.uid,
-        type: "order",
-        title: "New Order Received",
-        body: `${form.name} placed a new order totaling ${total} EGP.`,
-        relatedId: user.uid,
-      });
+    // 3️⃣ شغل العمليات الثقيلة في الخلفية بدون انتظار
+    (async () => {
+      try {
+        await generateAnalytics();
+        await addNotification({
+          to: "admin",
+          from: user.uid,
+          type: "order",
+          title: "New Order Received",
+          body: `${form.name} placed a new order totaling ${total} EGP.`,
+          relatedId: user.uid,
+        });
 
-      // 4️⃣ Clear cart
-      const cartSnapshot = await getDocs(
-        collection(db, "users", user.uid, "cart")
-      );
-      const deletePromises = cartSnapshot.docs.map((d) =>
-        deleteDoc(doc(db, "users", user.uid, "cart", d.id))
-      );
-      await Promise.all(deletePromises);
+        const cartSnapshot = await getDocs(
+          collection(db, "users", user.uid, "cart")
+        );
+        const deletePromises = cartSnapshot.docs.map((d) =>
+          deleteDoc(doc(db, "users", user.uid, "cart", d.id))
+        );
+        await Promise.all(deletePromises);
+      } catch (err) {
+        console.error("Background tasks failed:", err);
+      }
+    })();
 
-      setSuccess("Order placed successfully!");
-      setTimeout(() => navigate("/orders"), 1500);
-    } catch (err) {
-      console.error(err);
-      setSuccess("Error placing order. Try again.");
-    }
-  };
+  } catch (err) {
+    console.error(err);
+    setSuccess("Error placing order. Try again.");
+  }
+};
+
 
   const bgMain =
     theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
