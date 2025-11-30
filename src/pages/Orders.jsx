@@ -1,5 +1,4 @@
 // src/pages/Orders.jsx
-
 import React, { useEffect, useState, useMemo } from "react";
 import OrderItem from "../components/OrderItem";
 import { useTheme } from "../context/ThemeContext";
@@ -47,13 +46,8 @@ export default function Orders() {
     if (!user) return;
 
     try {
-      // 1️⃣ إضافة الأوردر
       await addDoc(collection(db, "users", user.uid, "orders"), orderData);
-
-      // 2️⃣ تحديث Top Selling تلقائياً
       await generateAnalytics();
-
-      // 3️⃣ إعادة جلب الأوردرات
       fetchOrders();
     } catch (err) {
       console.error(err);
@@ -68,15 +62,10 @@ export default function Orders() {
 
   const totalPages = Math.ceil(orders.length / itemsPerPage);
 
-  const bg = theme === "light"
-    ? "bg-gray-100 text-gray-900"
-    : "bg-[#0f0f0f] text-white";
-
-  const cardBg = theme === "light"
-    ? "bg-white text-gray-900"
-    : "bg-[#1a1a1a] text-white";
-
-  const primaryColor = "text-[#D3AD7F]";
+  // استخدام ألوان المشروع الجاهزة
+  const bg = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
+  const cardBg = theme === "light" ? "bg-light-surface text-light-text" : "bg-dark-surface text-dark-text";
+  const primaryColor = theme === "light" ? "text-light-primary font-bold" : "text-dark-heading font-bold";
 
   if (loading)
     return (
@@ -94,22 +83,25 @@ export default function Orders() {
 
   return (
     <div className={`pt-20 min-h-screen px-6 transition-all duration-300 ${bg}`}>
-      <h1 className={`text-4xl font-bold mb-10 text-center ${primaryColor}`}>
-        MY ORDERS
-      </h1>
+    <h1 className={`text-3xl md:text-4xl font-bold pt-10 text-center mb-8`}>
+      MY <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>ORDERS</span>
+    </h1>
+
 
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
         {paginatedOrders.map(order => (
           <div
             key={order.id}
-            className={`rounded-2xl p-6 shadow-xl border border-gray-300/20 ${cardBg}`}
+            className={`rounded-2xl p-6 shadow-xl border border-light-inputBorder dark:border-dark-inputBorder ${cardBg} transition-all hover:scale-[1.02]`}
           >
             <OrderItem order={order} />
 
             <div className="mt-4 border-t pt-4 opacity-80 text-sm">
               <p>
                 <span className="font-semibold">Total Salary:</span>{" "}
-                <span className={primaryColor}>{order.total} EGP</span>
+                <span className={theme === "light" ? "text-light-primary font-semibold" : "text-dark-primary font-semibold"}>
+                  {order.total} EGP
+                </span>
               </p>
 
               <p>

@@ -75,6 +75,7 @@ export default function AdminOrders() {
       });
     }
 
+    // Sort orders by newest first
     allOrders.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
     setOrders(allOrders);
   };
@@ -108,43 +109,55 @@ export default function AdminOrders() {
     });
   };
 
-  const handleDeleteOrder = async () => {
-    if (!orderToDelete) return;
-    const ref = doc(db, "users", orderToDelete.userId, "orders", orderToDelete.id);
+  // تعديل handleDeleteOrder
+const handleDeleteOrder = async () => {
+  if (!orderToDelete) return;
+
+  // فقط UserId الحقيقي بدون أي مسار زائد
+  const actualUserId = orderToDelete.userId.split("/")[0];
+
+  const ref = doc(db, "users", actualUserId, "orders", orderToDelete.id);
+  await deleteDoc(ref);
+
+  setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+  setOrderToDelete(null);
+  setShowModal(false);
+};
+
+const handleClearFinished = async () => {
+  const finishedOrders = orders.filter(
+    (order) => order.status === "completed" || order.status === "rejected"
+  );
+
+  for (let order of finishedOrders) {
+    // تأكد المسار صح: users/{userId}/orders/{orderId}
+    const ref = doc(db, "users", order.userId, "orders", order.id);
     await deleteDoc(ref);
-    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
-    setOrderToDelete(null);
-    setShowModal(false);
-  };
+  }
 
-  const handleClearFinished = async () => {
-    const finishedOrders = orders.filter(
-      (order) => order.status === "completed" || order.status === "rejected"
-    );
+  setOrders((prev) =>
+    prev.filter(
+      (order) => order.status !== "completed" && order.status !== "rejected"
+    )
+  );
 
-    for (let order of finishedOrders) {
-      const ref = doc(db, order.userId, "orders", order.id);
-      await deleteDoc(ref);
-    }
+  setCurrentPage(1);
+  setShowClearModal(false);
+};
 
-    setOrders((prev) =>
-      prev.filter(
-        (order) => order.status !== "completed" && order.status !== "rejected"
-      )
-    );
-    setShowClearModal(false);
-  };
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(
-      (order) =>
-        (category === "All" || order.category === category) &&
-        (statusFilter === "All" || order.status === statusFilter) &&
-        (order.customerName.toLowerCase().includes(search.toLowerCase()) ||
-          order.items.some((it) =>
-            it.name.toLowerCase().includes(search.toLowerCase())
-          ))
-    );
+    return orders
+      .filter(
+        (order) =>
+          (category === "All" || order.category === category) &&
+          (statusFilter === "All" || order.status === statusFilter) &&
+          (order.customerName.toLowerCase().includes(search.toLowerCase()) ||
+            order.items.some((it) =>
+              it.name.toLowerCase().includes(search.toLowerCase())
+            ))
+      )
+      .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis()); // newest first
   }, [orders, search, statusFilter, category]);
 
   const totalOrders = orders.length;
@@ -154,7 +167,7 @@ export default function AdminOrders() {
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
 
-  // FIXPagination
+  // Pagination
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
   const indexOfLast = currentPage * itemsPerPage;
@@ -374,7 +387,6 @@ export default function AdminOrders() {
         })}
       </div>
 
-
       {/* Pagination */}
       {filteredOrders.length > itemsPerPage && (
         <Pagination
@@ -393,12 +405,23 @@ export default function AdminOrders() {
               <div className="w-12 h-12 rounded-md flex items-center justify-center text-white font-bold bg-light-primary dark:bg-dark-primary">!</div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Delete Order</h3>
-                <p className="text-sm opacity-70">Are you sure you want to delete the order for <span className="font-semibold">{orderToDelete.customerName}</span>? This action cannot be undone.</p>
+                <p className="text-sm opacity-70">Are you sure you want to delete the
+order for <span className="font-semibold">{orderToDelete.customerName}</span>? This action cannot be undone.</p>
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => { setShowModal(false); setOrderToDelete(null); }} className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">Cancel</button>
-              <button onClick={handleDeleteOrder} className="px-4 py-2 rounded-md bg-red-600 text-white">Yes, Delete</button>
+              <button
+                onClick={() => { setShowModal(false); setOrderToDelete(null); }}
+                className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteOrder}
+                className="px-4 py-2 rounded-md bg-red-600 text-white"
+              >
+                Yes, Delete
+              </button>
             </div>
           </div>
         </div>
@@ -407,13 +430,30 @@ export default function AdminOrders() {
       {/* Clear Finished Modal */}
       {showClearModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowClearModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowClearModal(false)}
+          />
           <div className="relative z-60 max-w-md w-full p-6 rounded-2xl shadow-2xl bg-light-surface dark:bg-dark-surface border-t-4 border-red-600">
-            <h3 className="text-lg font-semibold text-light-text dark:text-dark-text mb-3">Clear Completed/Rejected Orders</h3>
-            <p className="text-sm opacity-70 mb-4">Are you sure you want to delete all completed and rejected orders? This action cannot be undone.</p>
+            <h3 className="text-lg font-semibold text-light-text dark:text-dark-text mb-3">
+              Clear Completed/Rejected Orders
+            </h3>
+            <p className="text-sm opacity-70 mb-4">
+              Are you sure you want to delete all completed and rejected orders? This action cannot be undone.
+            </p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowClearModal(false)} className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">Cancel</button>
-              <button onClick={handleClearFinished} className="px-4 py-2 rounded-md bg-red-600 text-white">Clear</button>
+              <button
+                onClick={() => setShowClearModal(false)}
+                className="px-4 py-2 rounded-md bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearFinished}
+                className="px-4 py-2 rounded-md bg-red-600 text-white"
+              >
+                Clear
+              </button>
             </div>
           </div>
         </div>

@@ -30,8 +30,11 @@ export function calcPeakHours(orders) {
 
 // 3) Total sales
 export function calcTotalSales(orders) {
-  return orders.reduce((sum, o) => sum + Number(o.total), 0);
+  return orders
+    .filter(o => o.status === "completed") // ⬅⬅ هنا الفلترة
+    .reduce((sum, o) => sum + Number(o.total), 0);
 }
+
 
 // 4) Active users
 export function calcActiveUsers(orders) {
