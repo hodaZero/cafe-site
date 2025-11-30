@@ -1,5 +1,6 @@
 import React from "react";
 import ProductList from "../components/ProductList"; 
+import SmartRecommendations from "../components/SmartRecommendations";
 import { useTheme } from "../context/ThemeContext";
 
 const Menu = () => {
@@ -13,6 +14,16 @@ const Menu = () => {
       <h1 className={`text-3xl md:text-4xl font-bold pt-10 ${theme === "light" ? "text-light-text" : "text-dark-text"}`}>
         OUR <span className={titleColor}>MENU</span>
       </h1>
+
+      {/* ⭐ عنوان الريكومينديشن */}
+      {/* <h2 className={`text-2xl font-semibold mt-10 mb-6 ${theme === "light" ? "text-light-text" : "text-dark-text"}`}>
+        Recommended for you
+      </h2> */}
+
+      {/* ⭐ Smart Recommendations */}
+      <SmartRecommendations />
+
+      {/* باقي المنتجات */}
       <ProductList theme={theme} />
     </div>
   );
