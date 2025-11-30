@@ -1,11 +1,9 @@
 // src/firebase/firebaseConfig.js
-
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // مهم
+import { getAuth } from "firebase/auth";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyADuDp22Yd6kZOdtbG4Vm2UeRG2vfsadPk",
   authDomain: "coffee-site-iti.firebaseapp.com",
@@ -19,12 +17,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-
-// Initialize Firestore
 const db = getFirestore(app);
-
-// Initialize Auth
 const auth = getAuth(app);
 
-// Export
 export { app, analytics, db, auth };

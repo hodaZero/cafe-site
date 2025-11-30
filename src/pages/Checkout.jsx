@@ -1,3 +1,5 @@
+// src/pages/CheckoutPage.jsx
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -20,16 +22,14 @@ import {
 } from "firebase/firestore";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
-
-// Notification System
 import { useNotifications } from "../context/NotificationContext";
+import { generateAnalytics } from "./services/analytics/analyticsEngine";
 
 const CheckoutPage = () => {
   const { theme } = useTheme();
   const { state } = useLocation();
   const navigate = useNavigate();
   const { selectedTable } = useSelector((state) => state.cart);
-
   const { addNotification } = useNotifications();
 
   const items = state?.items || [];
@@ -47,6 +47,7 @@ const CheckoutPage = () => {
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
 
+  // Fetch table info if user has dine-in
   useEffect(() => {
     const fetchUserTable = async () => {
       const user = auth.currentUser;
@@ -59,7 +60,6 @@ const CheckoutPage = () => {
         );
 
         const snapshot = await getDocs(q);
-
         if (!snapshot.empty) {
           const tableDoc = snapshot.docs[0];
           setTableNumber(tableDoc.data().tableNumber);
@@ -91,13 +91,14 @@ const CheckoutPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Handle placing order & updating SmartRecommendations
   const handlePlaceOrder = async () => {
     if (!validate()) return;
     const user = auth.currentUser;
     if (!user) return alert("You must be logged in.");
 
     try {
-      // Add order
+      // 1️⃣ Add order to Firestore
       await addDoc(collection(db, "users", user.uid, "orders"), {
         userId: user.uid,
         customerName: form.name,
@@ -113,7 +114,11 @@ const CheckoutPage = () => {
         createdAt: new Date(),
       });
 
-      // Notify admin
+      // 2️⃣ Update SmartRecommendations automatically
+      await generateAnalytics();
+      
+
+      // 3️⃣ Notify admin
       await addNotification({
         to: "admin",
         from: user.uid,
@@ -123,7 +128,7 @@ const CheckoutPage = () => {
         relatedId: user.uid,
       });
 
-      // Clear cart
+      // 4️⃣ Clear cart
       const cartSnapshot = await getDocs(
         collection(db, "users", user.uid, "cart")
       );
@@ -140,10 +145,20 @@ const CheckoutPage = () => {
     }
   };
 
-  const bgMain = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
-  const bgCard = theme === "light" ? "bg-white text-gray-900 shadow-xl" : "bg-[#151515] text-white shadow-lg border border-[#222]";
-  const inputBg = theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#1f1f1f] text-white placeholder-gray-300";
-  const buttonClass = theme === "dark" ? "bg-dark-primary hover:bg-dark-primaryHover text-dark-text" : "bg-light-primary hover:bg-light-primaryHover text-white";
+  const bgMain =
+    theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
+  const bgCard =
+    theme === "light"
+      ? "bg-white text-gray-900 shadow-xl"
+      : "bg-[#151515] text-white shadow-lg border border-[#222]";
+  const inputBg =
+    theme === "light"
+      ? "bg-gray-100 text-gray-900"
+      : "bg-[#1f1f1f] text-white placeholder-gray-300";
+  const buttonClass =
+    theme === "dark"
+      ? "bg-dark-primary hover:bg-dark-primaryHover text-dark-text"
+      : "bg-light-primary hover:bg-light-primaryHover text-white";
 
   return (
     <div className={`pt-20 min-h-screen px-6 pb-16 ${bgMain}`}>
@@ -194,16 +209,28 @@ const CheckoutPage = () => {
                   className={`flex items-center justify-between p-4 rounded-2xl shadow-lg hover:scale-[1.02] transition-transform ${bgCard}`}
                 >
                   <div className="flex items-center gap-4">
-                    <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-2xl shadow-md"/>
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-20 h-20 object-cover rounded-2xl shadow-md"
+                    />
                     <div className="flex flex-col">
                       <span className="font-semibold text-lg">{item.name}</span>
-                      <span className="font-bold opacity-80">{item.price} EGP</span>
-                      <span className="text-sm opacity-70">Qty: {item.quantity || 1}</span>
+                      <span className="font-bold opacity-80">
+                        {item.price} EGP
+                      </span>
+                      <span className="text-sm opacity-70">
+                        Qty: {item.quantity || 1}
+                      </span>
                     </div>
                   </div>
                 </motion.div>
               ))}
-              {items.length === 0 && <p className="text-center opacity-70 text-lg">Your cart is empty.</p>}
+              {items.length === 0 && (
+                <p className="text-center opacity-70 text-lg">
+                  Your cart is empty.
+                </p>
+              )}
             </div>
           </div>
 
@@ -213,10 +240,11 @@ const CheckoutPage = () => {
               Shipping Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[{ icon: <FaUser />, name: "name", placeholder: "Full Name" },
+              {[
+                { icon: <FaUser />, name: "name", placeholder: "Full Name" },
                 { icon: <FaEnvelope />, name: "email", placeholder: "Email" },
                 { icon: <FaPhone />, name: "phone", placeholder: "Phone Number" },
-                { icon: <FaMapMarkerAlt />, name: "address", placeholder: "Address" }
+                { icon: <FaMapMarkerAlt />, name: "address", placeholder: "Address" },
               ].map((f, idx) => (
                 <motion.div key={idx} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                   <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
@@ -235,7 +263,12 @@ const CheckoutPage = () => {
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <div className={`flex items-center gap-3 p-4 rounded-xl shadow-md ${bgCard}`}>
                   <FaCreditCard />
-                  <select name="payment" value={form.payment} onChange={handleChange} className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}>
+                  <select
+                    name="payment"
+                    value={form.payment}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 rounded-lg focus:outline-none ${inputBg}`}
+                  >
                     <option value="">Payment Method</option>
                     <option value="cash">Cash</option>
                     <option value="card">Credit Card</option>
@@ -268,7 +301,10 @@ const CheckoutPage = () => {
             <span>{total} EGP</span>
           </div>
           {success && <p className="text-green-500 text-center font-semibold">{success}</p>}
-          <button onClick={handlePlaceOrder} className={`mt-4 w-full font-bold py-4 rounded-2xl shadow-lg transition-all ${buttonClass}`}>
+          <button
+            onClick={handlePlaceOrder}
+            className={`mt-4 w-full font-bold py-4 rounded-2xl shadow-lg transition-all ${buttonClass}`}
+          >
             Confirm Order
           </button>
         </motion.div>
