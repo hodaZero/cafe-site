@@ -42,9 +42,11 @@ export default function AdminOrders() {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
 
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
 
   const fetchOrders = async () => {
     let allOrders = [];
@@ -84,6 +86,9 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
+  // ==========================
+  // تعديل handleStatusChange لدعم Delivered
+  // ==========================
   const handleStatusChange = async (order, newStatus) => {
     const ref = doc(db, "users", order.userId, "orders", order.id);
     await updateDoc(ref, { status: newStatus });
@@ -92,59 +97,63 @@ export default function AdminOrders() {
       prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
     );
 
+    // إشعار بناءً على الحالة الجديدة
+    let title = "";
+    let body = "";
+    if (newStatus === "completed") {
+      title = "Your order is completed";
+      body = `Your order #${order.id} has been completed successfully.`;
+    } else if (newStatus === "rejected") {
+      title = "Your order has been rejected";
+      body = `Your order #${order.id} was rejected.`;
+    } else if (newStatus === "delivered") {
+      title = "Your order has been delivered";
+      body = `Your order #${order.id} has been delivered successfully.`;
+    }
+
     await addNotification({
       to: order.userId,
       from: "admin",
       type: "order_status",
-      title:
-        newStatus === "completed"
-          ? "Your order is completed"
-          : "Your order has been rejected",
-      body:
-        newStatus === "completed"
-          ? `Your order #${order.id} has been completed successfully.`
-          : `Your order #${order.id} was rejected.`,
+      title,
+      body,
       relatedId: order.id,
       timestamp: serverTimestamp(),
     });
   };
-
   // تعديل handleDeleteOrder
-const handleDeleteOrder = async () => {
-  if (!orderToDelete) return;
-
-  // فقط UserId الحقيقي بدون أي مسار زائد
-  const actualUserId = orderToDelete.userId.split("/")[0];
-
-  const ref = doc(db, "users", actualUserId, "orders", orderToDelete.id);
-  await deleteDoc(ref);
-
-  setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
-  setOrderToDelete(null);
-  setShowModal(false);
-};
-
-const handleClearFinished = async () => {
-  const finishedOrders = orders.filter(
-    (order) => order.status === "completed" || order.status === "rejected"
-  );
-
-  for (let order of finishedOrders) {
-    // تأكد المسار صح: users/{userId}/orders/{orderId}
-    const ref = doc(db, "users", order.userId, "orders", order.id);
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    const actualUserId = orderToDelete.userId.split("/")[0];
+    const ref = doc(db, "users", actualUserId, "orders", orderToDelete.id);
     await deleteDoc(ref);
-  }
 
-  setOrders((prev) =>
-    prev.filter(
-      (order) => order.status !== "completed" && order.status !== "rejected"
-    )
-  );
+    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+    setOrderToDelete(null);
+    setShowModal(false);
+  };
 
-  setCurrentPage(1);
-  setShowClearModal(false);
-};
+  const handleClearFinished = async () => {
+    const finishedOrders = orders.filter(
+      (order) =>
+        order.status === "completed" ||
+        order.status === "rejected"
+    );
 
+    for (let order of finishedOrders) {
+      const ref = doc(db, "users", order.userId, "orders", order.id);
+      await deleteDoc(ref);
+    }
+
+    setOrders((prev) =>
+      prev.filter(
+        (order) => order.status !== "completed" && order.status !== "rejected"
+      )
+    );
+
+    setCurrentPage(1);
+    setShowClearModal(false);
+  };
 
   const filteredOrders = useMemo(() => {
     return orders
@@ -157,7 +166,7 @@ const handleClearFinished = async () => {
               it.name.toLowerCase().includes(search.toLowerCase())
             ))
       )
-      .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis()); // newest first
+      .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
   }, [orders, search, statusFilter, category]);
 
   const totalOrders = orders.length;
@@ -167,16 +176,13 @@ const handleClearFinished = async () => {
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
 
-  // Pagination
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
 
   return (
     <div className={`pt-16 min-h-screen p-6 font-sans ${theme === "dark" ? "bg-dark-background text-white" : "bg-light-background text-black"}`}>
-
       {/* Top Summary Cards */}
       <div className="mb-6 flex flex-col md:flex-row gap-6">
         <div className="flex-1 rounded-2xl p-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-xl text-white flex flex-col justify-center hover:scale-105 transform transition">
@@ -199,10 +205,7 @@ const handleClearFinished = async () => {
       <div className="flex justify-between items-center mb-6 flex-wrap">
         <div className="flex items-center gap-3 w-full md:w-2/3">
           <div className="relative flex-1">
-            <Search
-              className="absolute left-3 top-2.5 text-light-text dark:text-dark-text opacity-60"
-              size={16}
-            />
+            <Search className="absolute left-3 top-2.5 text-light-text dark:text-dark-text opacity-60" size={16} />
             <input
               className="w-full pl-10 pr-3 py-2 rounded-md text-sm focus:outline-none bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder text-light-text dark:text-dark-text"
               placeholder="Search by customer or item..."
@@ -237,6 +240,7 @@ const handleClearFinished = async () => {
             >
               <option value="All">All Status</option>
               <option value="pending">Pending</option>
+              <option value="delivered">Delivered</option>
               <option value="completed">Completed</option>
               <option value="rejected">Rejected</option>
             </select>
@@ -268,6 +272,11 @@ const handleClearFinished = async () => {
         {currentOrders.map((order) => {
           const isOpen = activeTab === order.id;
 
+          // تحديد الحالات المسموحة حسب نوع الأوردر
+          const statusOptions = order.tableNumber !== "N/A"
+            ? ["pending", "completed", "rejected"]
+            : ["pending", "delivered", "completed", "rejected"];
+
           return (
             <div
               key={order.id}
@@ -291,7 +300,7 @@ const handleClearFinished = async () => {
                   <p className="text-xs mt-2 font-semibold">
                     Table:{" "}
                     <span className="text-light-primary dark:text-dark-primary">
-                      {order.tableNumber ? `Table ${order.tableNumber}` : "Take Away"}
+                      {order.tableNumber !== "N/A" ? `Table ${order.tableNumber}` : "Take Away"}
                     </span>
                   </p>
                   <p className="text-xs mt-1 opacity-70">
@@ -311,36 +320,81 @@ const handleClearFinished = async () => {
                 </div>
               </div>
 
-              {/* Details + Status */}
-              <div className="flex items-center justify-between gap-3 mt-2">
-                <button
-                  onClick={() => setActiveTab(isOpen ? null : order.id)}
-                  className={`flex-1 py-2 px-3 rounded-md font-semibold transition
-                    ${isOpen
-                      ? "bg-light-primary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-primary"
-                      : "bg-light-surface dark:bg-dark-surface border border-light-inputBorder dark:border-dark-inputBorder text-light-primary dark:text-dark-primary"}
-                    hover:bg-light-primary/30 hover:dark:bg-dark-primary/30`}
-                >
-                  {isOpen ? "Hide Details" : "Details"}
-                </button>
-
-                <div className="ml-2 flex items-center gap-2">
-                  {order.status === "pending" ? (
-                    <>
-                      <button onClick={() => handleStatusChange(order, "completed")} className="p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20">
-                        <CheckCircle size={18} className="text-green-600"/>
-                      </button>
-                      <button onClick={() => handleStatusChange(order, "rejected")} className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20">
-                        <XCircle size={18} className="text-red-600"/>
-                      </button>
-                    </>
-                  ) : order.status === "completed" ? (
-                    <span className="text-green-600 font-semibold">Completed</span>
-                  ) : (
-                    <span className="text-red-600 font-semibold">Rejected</span>
-                  )}
-                </div>
-              </div>
+              {/* Details + Status Buttons */}
+<div className="flex items-center justify-between gap-3 mt-2">
+  <button
+    onClick={() => setActiveTab(isOpen ? null : order.id)}
+    className={`flex-1 py-2 px-3 rounded-md font-semibold transition
+      ${isOpen
+        ? "bg-light-primary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-primary"
+        : "bg-light-surface dark:bg-dark-surface border border-light-inputBorder dark:border-dark-inputBorder text-light-primary dark:text-dark-primary"
+      }`}
+  >
+    {isOpen ? "Hide Details" : "Details"}
+  </button>
+<div className="ml-2 flex items-center gap-2">
+  {order.tableNumber === "N/A" ? (
+    <>
+      {order.status === "pending" && (
+        <>
+          <button
+            onClick={() => handleStatusChange(order, "delivered")}
+            className="p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          >
+            <CheckCircle size={18} className="text-blue-600"/>
+          </button>
+          <button
+            onClick={() => handleStatusChange(order, "rejected")}
+            className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+          >
+            <XCircle size={18} className="text-red-600"/>
+          </button>
+        </>
+      )}
+      {order.status === "delivered" && (
+        <button
+          onClick={() => handleStatusChange(order, "completed")}
+          className="p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20"
+        >
+          <CheckCircle size={18} className="text-green-600"/>
+        </button>
+      )}
+      {order.status === "completed" && (
+        <span className="text-green-600 font-semibold">Completed</span>
+      )}
+      {order.status === "rejected" && (
+        <span className="text-red-600 font-semibold">Rejected</span>
+      )}
+    </>
+  ) : (
+      // Normal Table Flow: Pending -> Completed/Rejected
+      <>
+        {order.status === "pending" && (
+          <>
+            <button
+              onClick={() => handleStatusChange(order, "completed")}
+              className="p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20"
+            >
+              <CheckCircle size={18} className="text-green-600"/>
+            </button>
+            <button
+              onClick={() => handleStatusChange(order, "rejected")}
+              className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              <XCircle size={18} className="text-red-600"/>
+            </button>
+          </>
+        )}
+        {order.status === "completed" && (
+          <span className="text-green-600 font-semibold">Completed</span>
+        )}
+        {order.status === "rejected" && (
+          <span className="text-red-600 font-semibold">Rejected</span>
+        )}
+      </>
+    )}
+  </div>
+</div>
 
               {/* Animated Details */}
               <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[1500px] opacity-100" : "max-h-0 opacity-0"}`}>
@@ -369,6 +423,11 @@ const handleClearFinished = async () => {
 
                   <div className="flex items-center justify-between gap-3 mt-3">
                     <div className="flex items-center gap-2">
+                      {statusOptions.includes("delivered") && order.status === "pending" && order.tableNumber === "N/A" && (
+                        <button onClick={() => handleStatusChange(order, "delivered")} className="px-3 py-1 rounded-md text-sm bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                          Mark Delivered
+                        </button>
+                      )}
                       <button onClick={() => handleStatusChange(order, "completed")} className="px-3 py-1 rounded-md text-sm bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
                         Mark Completed
                       </button>
@@ -387,14 +446,15 @@ const handleClearFinished = async () => {
         })}
       </div>
 
-      {/* Pagination */}
-      {filteredOrders.length > itemsPerPage && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
-      )}
+
+  {/* Pagination */}
+  {filteredOrders.length > itemsPerPage && (
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      onPageChange={(page) => setCurrentPage(page)}
+    />
+  )}
 
       {/* Delete Modal */}
       {showModal && orderToDelete && (

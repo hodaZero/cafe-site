@@ -23,7 +23,7 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/login", { replace: true });
+      navigate("/auth", { replace: true });
     } catch (err) {
       console.error("Error logging out:", err);
     }
