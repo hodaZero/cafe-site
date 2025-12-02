@@ -15,7 +15,7 @@ export default function Orders() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // جلب الأوردرات من Firestore
+  // جلب الأوردرات من Firestore بدون أي تعديل تلقائي
   const fetchOrders = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -24,10 +24,12 @@ export default function Orders() {
       const ordersRef = collection(db, "users", user.uid, "orders");
       const q = query(ordersRef, orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
-      const userOrders = snapshot.docs.map(docSnap => ({
+
+      const userOrders = snapshot.docs.map((docSnap) => ({
         id: docSnap.id,
         ...docSnap.data(),
       }));
+
       setOrders(userOrders);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
@@ -62,10 +64,9 @@ export default function Orders() {
 
   const totalPages = Math.ceil(orders.length / itemsPerPage);
 
-  // استخدام ألوان المشروع الجاهزة
+  // ألوان المشروع الجاهزة
   const bg = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
   const cardBg = theme === "light" ? "bg-light-surface text-light-text" : "bg-dark-surface text-dark-text";
-  const primaryColor = theme === "light" ? "text-light-primary font-bold" : "text-dark-heading font-bold";
 
   if (loading)
     return (
@@ -83,10 +84,9 @@ export default function Orders() {
 
   return (
     <div className={`pt-20 min-h-screen px-6 transition-all duration-300 ${bg}`}>
-    <h1 className={`text-3xl md:text-4xl font-bold pt-10 text-center mb-8`}>
-      MY <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>ORDERS</span>
-    </h1>
-
+      <h1 className={`text-3xl md:text-4xl font-bold pt-10 text-center mb-8`}>
+        MY <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>ORDERS</span>
+      </h1>
 
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
         {paginatedOrders.map(order => (
@@ -112,6 +112,8 @@ export default function Orders() {
                       ? "text-green-500 font-semibold"
                       : order.status === "rejected"
                       ? "text-red-500 font-semibold"
+                      : order.status === "delivered"
+                      ? "text-blue-500 font-semibold"
                       : "text-yellow-500 font-semibold"
                   }
                 >
