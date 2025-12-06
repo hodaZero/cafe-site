@@ -28,41 +28,40 @@ export default function AdminProfile() {
   }, []);
 
   // اختيار صورة جديدة
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setLocalImage(URL.createObjectURL(file));
-
-    // رفع الصورة فوراً
-    try {
-      setUploading(true);
-      const photoURL = await uploadImage("admin_cafe", file);
-      await updateProfile(auth.currentUser, { photoURL });
-      await updateUser(auth.currentUser.uid, { photoURL });
-      setUser((prev) => ({ ...prev, photoURL }));
-    } catch (err) {
-      console.error("Error updating admin photo:", err);
-    } finally {
-      setUploading(false);
-    }
-  };
+  const handleImageChange = async () => {
+     const fileInput = document.getElementById("profileImageInput").files[0];
+     if (!fileInput) return;
+ 
+     setUploading(true);
+     try {
+       const photoURL = await uploadImage("domi_cafe", fileInput);
+       await updateProfile(auth.currentUser, { photoURL });
+       await updateUser(auth.currentUser.uid, { photoURL });
+       setUser((prev) => ({ ...prev, photoURL }));
+       setLocalImage(null);
+     } catch (err) {
+       console.error(err);
+     } finally {
+       setUploading(false);
+     }
+   };
 
   const handleSaveName = async () => {
-    if (!user) return;
-    if (name === user.displayName) return;
-    try {
+    if (name !== user.displayName) {
       setUploading(true);
-      await updateProfile(auth.currentUser, { displayName: name });
-      await updateUser(auth.currentUser.uid, { name });
-      setUser((prev) => ({ ...prev, displayName: name }));
-      setEditingName(false);
-    } catch (err) {
-      console.error("Error updating admin name:", err);
-    } finally {
-      setUploading(false);
-    }
+      try {
+        await updateProfile(auth.currentUser, { displayName: name });
+        await updateUser(auth.currentUser.uid, { name });
+        setUser((prev) => ({ ...prev, displayName: name }));
+        setEditingName(false);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setUploading(false);
+      }
+    } else setEditingName(false);
   };
-
+  
   const cardBg = theme === "light" ? "bg-light-surface/90 text-light-text" : "bg-dark-surface/90 text-dark-text";
   const borderColor = theme === "light" ? "border-light-inputBorder/30" : "border-dark-inputBorder/30";
 

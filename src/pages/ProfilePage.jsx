@@ -29,23 +29,25 @@ export default function ProfilePage() {
     return () => unsubscribe();
   }, []);
 
-  const handleImageChange = async () => {
-    const fileInput = document.getElementById("profileImageInput").files[0];
-    if (!fileInput) return;
+ const handleImageChange = async (e) => {
+  const fileInput = e.target.files?.[0]; // Use optional chaining
+  if (!fileInput) return; // لو مفيش ملف مختار
 
-    setUploading(true);
-    try {
-      const photoURL = await uploadImage("domi_cafe", fileInput);
-      await updateProfile(auth.currentUser, { photoURL });
-      await updateUser(auth.currentUser.uid, { photoURL });
-      setUser((prev) => ({ ...prev, photoURL }));
-      setLocalImage(null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUploading(false);
-    }
-  };
+  setUploading(true);
+  try {
+    const photoURL = await uploadImage("domi_cafe", fileInput);
+    await updateProfile(auth.currentUser, { photoURL });
+    await updateUser(auth.currentUser.uid, { photoURL });
+    setUser((prev) => ({ ...prev, photoURL }));
+    setLocalImage(null);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setUploading(false);
+  }
+};
+
+
 
   const handleSaveName = async () => {
     if (name !== user.displayName) {
@@ -96,10 +98,10 @@ export default function ProfilePage() {
           </label>
           <input
             id="profileImageInput"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageChange}
+  type="file"
+  accept="image/*"
+  className="hidden"
+  onChange={handleImageChange}
           />
         </motion.div>
 

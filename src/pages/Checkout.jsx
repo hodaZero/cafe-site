@@ -92,10 +92,20 @@ const CheckoutPage = () => {
   };
 
   
-const handlePlaceOrder = async () => {
-  if (!validate()) return;
-  const user = auth.currentUser;
-  if (!user) return alert("You must be logged in.");
+  const handlePlaceOrder = async () => {
+    if (!validate()) return;
+    if (form.payment === "paypal") {
+    // Redirect to PayPal page
+    return navigate("/paypal", {
+      state: {
+        amount: total,
+        currency: "USD",
+        description: "Order Payment",
+      },
+    });
+  }
+    const user = auth.currentUser;
+    if (!user) return alert("You must be logged in.");
 
   try {
     // 1️⃣ Add order to Firestore فوري
@@ -276,8 +286,7 @@ const handlePlaceOrder = async () => {
                   >
                     <option value="">Payment Method</option>
                     <option value="cash">Cash</option>
-                    <option value="card">Credit Card</option>
-                    <option value="vodafone">Vodafone Cash</option>
+                    <option value="paypal">PayPal</option>
                   </select>
                 </div>
                 {errors.payment && <span className="text-red-500 text-sm ml-2">{errors.payment}</span>}

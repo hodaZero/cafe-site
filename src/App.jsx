@@ -22,6 +22,7 @@ import ProductsDashboard from "./pages/Dashboard/ProductsDashboard";
 import Orders from "./pages/Orders";
 import AdminProfile from "./pages/Dashboard/AdminProfile";
 import ForgotPassword from "./pages/Auth/ForgotPssword";
+import PayPalCheckout from "./components/PayPalCheckout";
 
 // Test Analytics
 import TestAnalytics from "./pages/TestAnalytics";
@@ -90,7 +91,7 @@ function AppContent() {
             </PrivateRoute>
           }
         />
-
+        <Route path="/paypal" element={<PayPalCheckout />} />
         <Route
           path="/checkout"
           element={

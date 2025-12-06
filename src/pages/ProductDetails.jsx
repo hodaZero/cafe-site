@@ -8,6 +8,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleCartItem, removeFromCartFirebase } from "../redux/cartSlice";
 import { auth } from "../firebase/firebaseConfig";
+import { setOrderType, setSelectedTable, checkStockBeforeAdd } from "../redux/orderFlowSlice";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -19,6 +20,9 @@ const ProductDetails = () => {
   // Redux
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart.items || []);
+  const orderType = useSelector((state) => state.orderFlow.orderType);
+const stockStatus = useSelector((state) => state.orderFlow.stockStatus);
+
 
   // productId لحماية الاختلاف بين مصادر البيانات
   const productIdFromParams = id;
@@ -59,13 +63,10 @@ const ProductDetails = () => {
     );
   }
 
-  // نحسب productId الحقيقى: لو المنتج فيه id نستخدمه وإلا نستخدم الـ param
   const productId = product.id || product.productId || productIdFromParams;
 
-  // ✅ هل المنتج موجود في الكارت؟ نقارن مع item.productId لأن الكارت بيخزن productId
   const isInCart = cart.some((item) => String(item.productId) === String(productId));
 
-  // إضافة/إزالة من الكارت
   const handleAddToCart = () => {
     if (!auth.currentUser) {
       navigate("/login");
