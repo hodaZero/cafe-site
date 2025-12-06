@@ -43,7 +43,6 @@ export default function ProductForm({
     }
   };
 
-  // 🔥 Strong JS Validation Only (no HTML validation)
   const validate = () => {
     const newErrors = {};
 
@@ -146,7 +145,7 @@ export default function ProductForm({
             placeholder="Enter price"
             className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} 
             focus:outline-none focus:ring-2 focus:ring-primary`}
-            type="text"     // ← no HTML validation
+            type="text"   
           />
           {errors.price && (
             <p className="text-red-500 text-sm mt-1">{errors.price}</p>

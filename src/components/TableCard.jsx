@@ -5,17 +5,12 @@ const TableCard = ({ table, selected }) => {
   const { theme } = useTheme();
   const isSelected = selected === table.id;
 
-  // الخلفية الأساسية حسب الثيم
   const baseBg = theme === "light"
     ? "bg-light-surface"
     : "bg-dark-surface";
-
-  // لون النصوص
   const textColor = theme === "light"
     ? "text-light-text"
     : "text-dark-text";
-
-  // شادو حسب حالة الترابيزة
   const shadowColor =
     table.status === "available"
       ? "shadow-[0_0_8px_1px_rgba(34,197,94,0.5)]"
@@ -26,8 +21,6 @@ const TableCard = ({ table, selected }) => {
       : "";
 
   const hoverEffect = table.status === "available" ? "hover:scale-105" : "";
-
-  // نص الحالة
   const statusText =
     table.status === "available"
       ? "Available"
@@ -66,8 +59,6 @@ const TableCard = ({ table, selected }) => {
       <p className={`text-sm font-bold ${statusTextColor} text-center`}>
         {statusText}
       </p>
-
-      {/* عدد الكراسي */}
       <p className={`text-xs font-medium text-center ${textColor} mt-1`}>
         Seats: {table.seats || 1}
       </p>

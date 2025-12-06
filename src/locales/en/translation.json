@@ -1,0 +1,146 @@
+{
+  "navbar": {
+    "home": "HOME",
+    "menu": "MENU",
+    "myOrders": "My Orders",
+    "tables": "Tables",
+    "login": "Login",
+    "logout": "Logout",
+    "notifications": "Notifications",
+    "clearAll": "Clear All",
+    "noNotifications": "No notifications",
+    "delete": "Delete"
+  },
+  "auth": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signInGoogle": "Sign In with Google",
+    "signUpGoogle": "Sign Up with Google",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email format",
+    "passwordRequired": "Password is required",
+    "passwordMin6": "Password must be at least 6 characters",
+    "nameRequired": "Name is required",
+    "verifyEmailMsg": "Please verify your email before logging in",
+    "registrationSuccess": "Registration successful!"
+  },
+  "home": {
+    "our": "OUR",
+    "menu": "MENU",
+    "recommended": "Recommended for you"
+  },
+  "profile": {
+    "name": "Name",
+    "email": "Email",
+    "loading": "Loading...",
+    "labelName": "Name:",
+    "labelEmail": "Email:",
+    "placeholderUser": "User"
+  },
+  "productDetails": {
+    "loadingProduct": "Loading product...",
+    "productNotFound": "Product not found",
+    "addToCart": "Add to Cart",
+    "removeFromCart": "Remove from Cart"
+  },
+  "ordersPage": {
+    "myOrders": "MY ORDERS",
+    "loading": "Loading...",
+    "noOrders": "No orders yet.",
+    "total": "Total Salary",
+    "status": "Status",
+    "completed": "Completed",
+    "rejected": "Rejected",
+    "delivered": "Delivered",
+    "pending": "Pending"
+  },
+  "favorites": {
+    "loading": "Loading...",
+    "empty": "No favorites yet, Add some from the menu!"
+  },
+  "dashboard": {
+  "title": "AI-Driven Analytics Dashboard",
+  "subtitle": "Smart insights powered by your cafe data",
+  "totalSales": "Total Sales",
+  "totalOrders": "Total Orders",
+  "activeUsers": "Active Users",
+  "topSellingProducts": "Top Selling Products",
+  "aiInsights": "AI Insights",
+  "menuDashboard": "Dashboard",
+  "notification": "Notification",
+  "products": "Products",
+  "orders": "Orders",
+  "tables": "Tables",
+  "profile": "Profile",
+  "logout": "Logout"
+  },
+  "menuPage": {
+    "ourMenu": "OUR MENU"
+  },
+  "userTables": {
+    "selectYourTable": "Select Your Table",
+    "upstairs": "Upstairs",
+    "downstairs": "Downstairs",
+    "available": "Available",
+    "occupied": "Occupied",
+    "pending": "Pending",
+    "pendingApproval": "Pending approval...",
+    "adminApproved": "Admin approved!",
+    "reserveTable": "Reserve Table",
+    "reserveTableConfirm": "Are you sure you want to reserve table number {{number}}?",
+    "reserve": "Reserve",
+    "cancel": "Cancel",
+    "newTableRequest": "New Table Request",
+    "userRequestedTable": "User requested table {{number}}"
+  },
+  "adminTable": {
+    "title": "Admin Tables",
+    "floor": "Floor",
+    "available": "Available",
+    "occupied": "Occupied",
+    "pending": "Pending",
+    "addNewTableQuestion": "Add new table?",
+    "deleteTableQuestion": "Are you sure you want to delete this table?",
+    "numberOfSeats": "Number of Seats",
+    "status": "Status",
+    "setAvailable": "Available",
+    "setOccupied": "Occupied",
+    "confirm": "Confirm",
+    "close": "Close",
+    "approvedTitle": "Table {{number}} Approved",
+    "rejectedTitle": "Table {{number}} Rejected"
+  },
+  "common": {
+    "notFound": "404 - Not Found"
+  },
+  "footer": {
+    "home": "Home",
+    "about": "About",
+    "menu": "Menu",
+    "products": "Products",
+    "service": "Service",
+    "contact": "Contact",
+    "blogs": "Blogs",
+    "copyright": "Created By Vijay | All Rights Reserved © {{year}}"
+  },
+  
+  "hero": {
+  "title": "Savor The Perfect Cup",
+  "subtitle": "Freshly brewed coffee made just for you",
+  "button": "Order Now"
+},
+"contact":
+{
+  "contact_us": "CONTACT US",
+  "name": "Name",
+  "email": "Email",
+  "mobile": "Mobile",
+  "contact_now": "Contact Now"
+}
+
+}
+

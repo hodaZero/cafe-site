@@ -20,7 +20,7 @@ const ProfileCard = ({ name: initialName, email, avatar: initialAvatar, onSave }
     const file = e.target.files[0];
     if (!file) return;
     setLocalAvatar(URL.createObjectURL(file));
-    if (onSave) onSave({ name, avatar: file }); // تمرير الملف للخارج لتحديثه
+    if (onSave) onSave({ name, avatar: file }); 
   };
 
   const handleSaveName = () => {

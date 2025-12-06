@@ -39,10 +39,8 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
     }
 
     if (isInCart) {
-      // ➕ لو المنتج موجود في الكارت → نحذفه
       dispatch(removeFromCartFirebase(productId));
     } else {
-      // ➕ لو المنتج مش موجود → نضيفه
       dispatch(toggleCartItem({ product: { ...product, productId }, quantity: 1 }));
     }
   };

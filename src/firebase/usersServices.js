@@ -4,7 +4,7 @@ import { collection, doc, setDoc, getDocs, updateDoc, deleteDoc } from "firebase
 const usersRef = collection(db, "users");
 
 export const addUser = async (data, uid) => {
-  const ref = doc(db, "users", uid); // uid من Firebase Auth
+  const ref = doc(db, "users", uid); 
   await setDoc(ref, data);
 };
 

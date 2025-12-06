@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ⬇️ function to fetch role from Firestore
   const fetchUserRole = async (uid) => {
     const ref = doc(db, "users", uid);
     const snapshot = await getDoc(ref);

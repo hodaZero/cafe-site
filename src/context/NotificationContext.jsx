@@ -66,7 +66,6 @@ export const NotificationProvider = ({ children }) => {
   const deleteNotification = async (id) => {
     const notifRef = doc(db, "notifications", id);
     await deleteDoc(notifRef);
-    // ✅ تحديث state محلي فورًا
     setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
@@ -75,7 +74,6 @@ export const NotificationProvider = ({ children }) => {
       deleteDoc(doc(db, "notifications", n.id))
     );
     await Promise.all(promises);
-    // ✅ مسح state محلي فورًا
     setNotifications([]);
   };
 

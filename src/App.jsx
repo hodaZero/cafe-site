@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import i18n from "./i18n";
+import { useTranslation } from "react-i18next";
 
 // Pages
 import AuthPage from "./pages/Auth/AuthPage";
@@ -49,6 +51,13 @@ function AdminRoute({ children }) {
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const { t, i18n: i18nextInstance } = useTranslation();
+
+  useEffect(() => {
+    const dir = i18nextInstance.language === "ar" ? "rtl" : "ltr";
+    document.documentElement.setAttribute("dir", dir);
+    document.documentElement.setAttribute("lang", i18nextInstance.language);
+  }, [i18nextInstance.language]);
 
   return (
     <NotificationProvider>
@@ -178,7 +187,7 @@ function AppContent() {
         {/* Test analytics route */}
         <Route path="/test-analytics" element={<TestAnalytics />} />
 
-        <Route path="*" element={<h1 className="text-center mt-20 text-2xl">404</h1>} />
+        <Route path="*" element={<h1 className="text-center mt-20 text-2xl">{t("common.notFound")}</h1>} />
       </Routes>
 
       {!isAdminRoute && <Footer />}

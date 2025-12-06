@@ -12,5 +12,4 @@ async function runAnalytics() {
   }
 }
 
-// شغليها مرة واحدة أو كل ما تحبي تحدثي البيانات
 runAnalytics();

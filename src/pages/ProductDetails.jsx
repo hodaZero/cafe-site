@@ -24,7 +24,6 @@ const ProductDetails = () => {
 const stockStatus = useSelector((state) => state.orderFlow.stockStatus);
 
 
-  // productId لحماية الاختلاف بين مصادر البيانات
   const productIdFromParams = id;
 
   useEffect(() => {
@@ -74,10 +73,8 @@ const stockStatus = useSelector((state) => state.orderFlow.stockStatus);
     }
 
     if (isInCart) {
-      // لو موجود: نحذف من الفايرستور للكارت
       dispatch(removeFromCartFirebase(productId));
     } else {
-      // لو مش موجود: نضيفه
       dispatch(toggleCartItem({ product: { ...product, id: productId }, quantity: 1 }));
     }
   };
@@ -125,7 +122,6 @@ const stockStatus = useSelector((state) => state.orderFlow.stockStatus);
         {product.description}
       </p>
 
-      {/* زرار يتغير حسب حالة وجود المنتج في الكارت */}
       <button
         onClick={handleAddToCart}
         className={`px-6 py-2 rounded-full font-medium transition-colors ${
