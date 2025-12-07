@@ -8,10 +8,14 @@ import ThemeToggle from "./ThemeToggle";
 import { useNotifications } from "../context/NotificationContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n"; 
+
 
 export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen: setIsOpenProp }) {
   const { pathname } = useLocation();
   const { theme } = useTheme();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isOpenLocal, setIsOpenLocal] = useState(false);
   const { notifications, clearAll, deleteNotification, markAsRead, unreadCount } = useNotifications();
@@ -29,15 +33,17 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
     }
   };
 
-  const links = [
-    { name: "Dashboard", path: "/admin/dashboard", icon: <FaClipboardList size={16} />, isButton: false }, // ✅ added
-    { name: "Notification", icon: <Bell size={16} />, isButton: true, onClick: () => setNotifOpen(prev => !prev) },
-    { name: "Products", path: "/admin/products", icon: <FaBox size={16} />, isButton: false },
-    { name: "Orders", path: "/admin/orders", icon: <FaClipboardList size={16} />, isButton: false },
-    { name: "Tables", path: "/admin/tables", icon: <FaChair size={16} />, isButton: false },
-    { name: "Profile", path: "/admin/profile", icon: <FaUserCircle size={16} />, isButton: false },
-    { name: "Logout", icon: <FaSignOutAlt size={16} />, isButton: true, onClick: handleLogout },
-  ];
+const links = [
+  { name: t("dashboard.menuDashboard"), path: "/admin/dashboard", icon: <FaClipboardList size={16} />, isButton: false },
+  { name: t("dashboard.notification"), icon: <Bell size={16} />, isButton: true, onClick: () => setNotifOpen(prev => !prev) },
+  { name: t("dashboard.products"), path: "/admin/products", icon: <FaBox size={16} />, isButton: false },
+  { name: t("dashboard.orders"), path: "/admin/orders", icon: <FaClipboardList size={16} />, isButton: false },
+  { name: t("dashboard.tables"), path: "/admin/tables", icon: <FaChair size={16} />, isButton: false },
+  { name: t("dashboard.profile"), path: "/admin/profile", icon: <FaUserCircle size={16} />, isButton: false },
+  { name: t("dashboard.logout"), icon: <FaSignOutAlt size={16} />, isButton: true, onClick: handleLogout },
+];
+
+
 
   const sidebarBg = theme === "light" ? "bg-light-surface border-light-inputBorder" : "bg-dark-surface border-dark-inputBorder";
   const linkText = theme === "light" ? "text-light-text" : "text-dark-text";
@@ -151,6 +157,13 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
 }
 
 function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, notifOpen, setNotifOpen, NotificationPopup, setIsOpen, navigate, unreadCount }) {
+  const { t } = useTranslation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ar" : "en";
+    i18n.changeLanguage(newLang);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -158,7 +171,15 @@ function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, 
         <span className="text-2xl font-bold" style={{ fontFamily: "'Playwrite CZ', cursive" }}>
           <span className="text-light-primary">D</span>omi <span className="text-light-primary">C</span>afe
         </span>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={toggleLanguage}
+            className="px-3 py-1 rounded-md border bg-light-primary text-white dark:bg-dark-primary dark:text-black text-sm"
+          >
+            {i18n.language === "en" ? "AR" : "EN"}
+          </button>
+        </div>
       </div>
 
       <ul className="space-y-3 relative">

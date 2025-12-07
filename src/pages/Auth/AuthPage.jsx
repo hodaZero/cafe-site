@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import backgroundPic from "../../assets/images/backgroundPic.jpg";
 import { loginUser, loginWithGoogle, resendVerificationEmail, registerUser } from "../../firebase/auth";
 import { FcGoogle } from "react-icons/fc";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useTheme } from "../../context/ThemeContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
-import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export default function AuthPage() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -17,11 +19,12 @@ export default function AuthPage() {
   const [infoMsg, setInfoMsg] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const validateEmail = (email) => !email ? "Email is required" : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : "Email is invalid";
-  const validatePassword = (password) => !password ? "Password is required" : password.length < 6 ? "Password must be at least 6 characters" : "";
-  const validateName = (name) => (!name ? "Name is required" : "");
+  const validateEmail = (email) => !email ? t("emailRequired") : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailInvalid");
+  const validatePassword = (password) => !password ? t("passwordRequired") : password.length < 6 ? t("passwordMin6") : "";
+  const validateName = (name) => (!name ? t("nameRequired") : "");
 
   const fetchUserRole = async (uid) => {
     const ref = doc(db, "users", uid);
@@ -47,7 +50,7 @@ export default function AuthPage() {
       await handleLoginRedirect(firebaseUser);
     } catch (err) {
       if (err.message.includes("verify your email")) {
-        setInfoMsg("Please verify your email. A verification link has been sent.");
+        setInfoMsg(t("verifyEmailMsg"));
         try { await resendVerificationEmail(err.user || null); } catch {}
       } else setSubmitError(err.message);
     }
@@ -63,7 +66,7 @@ export default function AuthPage() {
 
     try {
       await registerUser(formData.email, formData.password, formData.name);
-      setSuccessMsg("Registration successful! Check your email to verify your account.");
+      setSuccessMsg(t("registrationSuccess"));
       setFormData({ name: "", email: "", password: "" });
     } catch (err) {
       setSubmitError(err.message);
@@ -79,7 +82,6 @@ export default function AuthPage() {
     }
   };
 
-  // ---------------- Theme-based colors ----------------
   const cardBg = theme === "light"
     ? "bg-gradient-to-br from-light-background/90 to-light-surface/90 text-light-text shadow-2xl"
     : "bg-gradient-to-br from-dark-background/90 to-dark-surface/90 text-dark-text shadow-2xl";
@@ -96,67 +98,75 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background image with gradient overlay */}
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${backgroundPic})` }} />
       <div className={`absolute inset-0 ${theme === "light" ? "bg-light-background/50" : "bg-dark-background/60"} backdrop-blur-sm`}></div>
 
-      {/* Auth Card */}
-      <motion.div
-        className={`relative z-10 p-10 sm:p-12 rounded-2xl w-full max-w-md ${cardBg}`}
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <motion.form
+      <div className={`relative z-10 p-10 sm:p-12 rounded-2xl w-full max-w-md ${cardBg}`}>
+        <form
           key={isLogin ? "login" : "signup"}
           className="space-y-4"
           onSubmit={isLogin ? handleLogin : handleRegister}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
         >
           {!isLogin && (
-            <input type="text" name="name" placeholder="Name"
+            <input type="text" name="name" placeholder={t("name")}
               className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
               value={formData.name} onChange={handleChange} />
           )}
           {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
 
-          <input type="email" name="email" placeholder="Email"
+          <input type="email" name="email" placeholder={t("email")}
             className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
             value={formData.email} onChange={handleChange} />
           {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
 
-          <input type="password" name="password" placeholder="Password"
-            className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
-            value={formData.password} onChange={handleChange} />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder={t("password")}
+              className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
+              value={formData.password} onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500"
+              onClick={() => setShowPassword(prev => !prev)}
+            >
+              {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+            </button>
+          </div>
           {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
 
           {isLogin && (
-            <p className={`${theme === "light" ? "text-light-primary" : "text-dark-primaryHover"} text-sm cursor-pointer text-right`} onClick={() => navigate("/forgot-password")}>Forgot password?</p>
+            <p className={`${theme === "light" ? "text-light-primary" : "text-dark-primaryHover"} text-sm cursor-pointer text-right`} onClick={() => navigate("/forgot-password")}>
+              {t("forgotPassword")}
+            </p>
           )}
 
           <button type="submit" className={`w-full py-3 rounded-xl font-semibold ${primaryBtn}`}>
-            {isLogin ? "Sign In" : "Sign Up"}
+            {isLogin ? t("signIn") : t("signUp")}
           </button>
 
           <button type="button" onClick={handleGoogleLogin}
             className="w-full mt-2 flex items-center justify-center gap-2 py-3 rounded-xl border border-light-primary hover:scale-105 transition-transform">
-            <FcGoogle size={22} /> {isLogin ? "Sign In with Google" : "Sign Up with Google"}
+            <FcGoogle size={22} /> {isLogin ? t("signInGoogle") : t("signUpGoogle")}
           </button>
 
           {infoMsg && <p className="text-blue-500 text-center mt-2">{infoMsg}</p>}
           {successMsg && <p className="text-green-500 text-center mt-2">{successMsg}</p>}
           {submitError && <p className="text-red-500 text-center mt-2">{submitError}</p>}
-        </motion.form>
+        </form>
 
-        {/* Toggle buttons under the form */}
         <div className="mt-6 flex justify-center gap-4 text-sm text-gray-500">
-          <button className={`font-semibold ${isLogin ? "underline text-light-primary" : "hover:text-light-primary"}`} onClick={() => setIsLogin(true)}>Sign In</button>
+          <button className={`font-semibold ${isLogin ? "underline text-light-primary" : "hover:text-light-primary"}`} onClick={() => setIsLogin(true)}>
+            {t("signIn")}
+          </button>
           <span>|</span>
-          <button className={`font-semibold ${!isLogin ? "underline text-light-primary" : "hover:text-light-primary"}`} onClick={() => setIsLogin(false)}>Sign Up</button>
+          <button className={`font-semibold ${!isLogin ? "underline text-light-primary" : "hover:text-light-primary"}`} onClick={() => setIsLogin(false)}>
+            {t("signUp")}
+          </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

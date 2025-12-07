@@ -1,5 +1,4 @@
 // src/pages/CheckoutPage.jsx
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -108,7 +107,6 @@ const CheckoutPage = () => {
     if (!user) return alert("You must be logged in.");
 
   try {
-    // 1️⃣ Add order to Firestore فوري
     await addDoc(collection(db, "users", user.uid, "orders"), {
       userId: user.uid,
       customerName: form.name,
@@ -124,11 +122,9 @@ const CheckoutPage = () => {
       createdAt: new Date(),
     });
 
-    // 2️⃣ Set success message فوراً للمستخدم
     setSuccess("Order placed successfully!");
     setTimeout(() => navigate("/orders"), 1500);
 
-    // 3️⃣ شغل العمليات الثقيلة في الخلفية بدون انتظار
     (async () => {
       try {
         await generateAnalytics();

@@ -6,16 +6,15 @@ import { setSelectedTable } from "../redux/cartSlice";
 import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { motion } from "framer-motion";
-
-// ⭐ إضافة الإشعارات
 import { useNotifications } from "../context/NotificationContext";
+import { useTranslation } from "react-i18next"; 
 
 const UserTables = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation(); 
   const dispatch = useDispatch();
   const { selectedTable } = useSelector((state) => state.cart);
-
-  const { addNotification } = useNotifications(); // ⭐ Hook الإشعارات
+  const { addNotification } = useNotifications();
 
   const [tables, setTables] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -58,12 +57,7 @@ const UserTables = () => {
     setTables((prev) =>
       prev.map((t) =>
         t.id === tableToReserve.id
-          ? {
-              ...t,
-              status: "pending",
-              reservedBy: auth.currentUser.uid,
-              approved: false,
-            }
+          ? { ...t, status: "pending", reservedBy: auth.currentUser.uid, approved: false }
           : t
       )
     );
@@ -75,13 +69,12 @@ const UserTables = () => {
       })
     );
 
-    // ⭐ إرسال إشعار للأدمن عند الحجز
     await addNotification({
       to: "admin",
       from: auth.currentUser.uid,
       type: "table_request",
-      title: "New Table Reservation Request",
-      body: `User requested table ${tableToReserve.tableNumber}.`,
+      title: t("userTables.newTableRequest"), 
+      body: t("userTables.userRequestedTable", { number: tableToReserve.tableNumber }), 
       relatedId: tableToReserve.id,
       timestamp: new Date(),
     });
@@ -94,31 +87,26 @@ const UserTables = () => {
     tables.filter((t) => t.floor === floor && t.status === status).length;
 
   return (
-    <div
-      className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}
-    >
-      <h1 className={`text-4xl font-bold mb-8 text-center drop-shadow-lg`}>
-        Select Your Table
+    <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
+      <h1 className="text-4xl font-bold mb-8 text-center drop-shadow-lg">
+        {t("userTables.selectYourTable")}
       </h1>
 
       {floors.map((floor) => (
         <div key={floor} className="w-full max-w-6xl mb-12">
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: "#B45309" }}
-          >
-            {floor}
+          <h2 className="text-2xl font-semibold mb-4" style={{ color: "#B45309" }}>
+            {t(`userTables.${floor.toLowerCase()}`)}
           </h2>
 
           <div className="flex justify-center items-center gap-6 mb-6 flex-wrap">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 font-semibold shadow-md text-black">
-              Available: {countStatus(floor, "available")}
+              {t("userTables.available")}: {countStatus(floor, "available")}
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 font-semibold shadow-md text-black">
-              Occupied: {countStatus(floor, "occupied")}
+              {t("userTables.occupied")}: {countStatus(floor, "occupied")}
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-400 font-semibold shadow-md text-black">
-              Pending: {countStatus(floor, "pending")}
+              {t("userTables.pending")}: {countStatus(floor, "pending")}
             </div>
           </div>
 
@@ -129,20 +117,15 @@ const UserTables = () => {
               .map((table) => (
                 <motion.div
                   key={table.id}
-                  whileHover={{
-                    scale: table.status === "available" ? 1.05 : 1,
-                  }}
+                  whileHover={{ scale: table.status === "available" ? 1.05 : 1 }}
                   className="transition-transform relative cursor-pointer"
                   onClick={() => handleSelectTable(table)}
                 >
                   <TableCard table={table} selected={selectedTable?.id} />
 
                   {table.status === "pending" && (
-                    <p
-                      className="text-center mt-2 text-sm font-semibold"
-                      style={{ color: "#B45309" }}
-                    >
-                      {!table.approved ? "Pending Approval" : "Admin Approved"}
+                    <p className="text-center mt-2 text-sm font-semibold" style={{ color: "#B45309" }}>
+                      {!table.approved ? t("userTables.pendingApproval") : t("userTables.adminApproved")}
                     </p>
                   )}
                 </motion.div>
@@ -159,22 +142,22 @@ const UserTables = () => {
             animate={{ scale: 1, opacity: 1 }}
             className="bg-white dark:bg-[#1a1a1a] text-black dark:text-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center gap-6"
           >
-            <h2 className="text-2xl font-bold text-center">Reserve Table</h2>
+            <h2 className="text-2xl font-bold text-center">{t("userTables.reserveTable")}</h2>
             <p className="mb-6">
-              Do you want to reserve Table {tableToReserve.tableNumber}?
+              {t("userTables.reserveTableConfirm", { number: tableToReserve.tableNumber })}
             </p>
             <div className="flex gap-4">
               <button
                 onClick={handleReserveTable}
                 className="px-6 py-2 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-md"
               >
-                Reserve
+                {t("userTables.reserve")}
               </button>
               <button
                 onClick={() => setShowModal(false)}
                 className="px-6 py-2 bg-gray-400 text-white font-semibold rounded-xl hover:bg-gray-500 shadow-md"
               >
-                Cancel
+                {t("userTables.cancel")}
               </button>
             </div>
           </motion.div>

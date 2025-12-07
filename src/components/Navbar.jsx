@@ -8,11 +8,12 @@ import { auth } from "../firebase/firebaseConfig";
 import { logoutUser } from "../firebase/auth";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
-
-//Notification Context
 import { useNotifications } from "../context/NotificationContext";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
@@ -31,7 +32,6 @@ export default function Navbar() {
   const favoritesCount = useSelector((state) => state.favorite.favorites?.length || 0);
   const cartCount = useSelector((state) => state.cart.items?.length || 0);
 
-  // ⭐ إغلاق Notification Popup عند الضغط خارجها
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".notification-popup") && !e.target.closest(".notification-button")) {
@@ -73,24 +73,29 @@ export default function Navbar() {
     </button>
   );
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ar" : "en";
+    i18n.changeLanguage(newLang);
+  };
+
   const renderLinks = () => (
     <>
       <Link to="/" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
-        HOME
+        {t("navbar.home")}
       </Link>
 
       <Link to="/menu" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
-        MENU
+        {t("navbar.menu")}
       </Link>
 
       {isVerifiedUser && (
         <Link to="/orders" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
-          My Orders
+          {t("navbar.myOrders")}
         </Link>
       )}
 
       <Link to="/tables" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
-        Tables
+        {t("navbar.tables")}
       </Link>
 
       {!isVerifiedUser ? (
@@ -103,11 +108,11 @@ export default function Navbar() {
               : "bg-light-surface text-black hover:bg-light-primary/20"
           }`}
         >
-          Login
+          {t("navbar.login")}
         </Link>
       ) : (
         <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>
-          Logout
+          {t("navbar.logout")}
         </button>
       )}
     </>
@@ -120,16 +125,16 @@ export default function Navbar() {
       }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-lg">Notifications</h3>
+        <h3 className="font-semibold text-lg">{t("navbar.notifications")}</h3>
         {notifications.length > 0 && (
           <button onClick={clearAll} className="text-sm text-red-500 hover:underline">
-            Clear All
+            {t("navbar.clearAll")}
           </button>
         )}
       </div>
 
       {notifications.length === 0 ? (
-        <p className="text-center py-3 opacity-70">No notifications</p>
+        <p className="text-center py-3 opacity-70">{t("navbar.noNotifications")}</p>
       ) : (
         <div className="max-h-60 overflow-y-auto pr-1">
           {notifications.map((n) => (
@@ -147,7 +152,7 @@ export default function Navbar() {
                     deleteNotification(n.id);
                   }}
                 >
-                  Delete
+                  {t("navbar.delete")}
                 </button>
               </div>
               <p className="text-sm opacity-90">{n.body}</p>
@@ -177,11 +182,19 @@ export default function Navbar() {
         </div>
       )}
       <ThemeToggle />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={toggleLanguage}
+          className="px-2 py-1 rounded-md border hover:bg-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+        >
+          {i18n.language === "en" ? "Ar" : "En"}
+        </button>
+      </div>
       {isVerifiedUser && (
         <button onClick={() => navigate("/profile")}>
           <img
             src={user.photoURL || "https://i.pravatar.cc/100"}
-            alt="Profile"
+            alt={t("profile")}
             className={`h-8 w-8 rounded-full object-cover border-2 ${avatarBorder}`}
           />
         </button>
@@ -192,7 +205,6 @@ export default function Navbar() {
   return (
     <header className={`fixed w-full z-50 transition-colors duration-300 ${headerClass}`}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-
         <Link to="/" className="flex items-center gap-3">
           <motion.img
             src={logo}
@@ -217,7 +229,6 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden md:flex gap-4 items-center">{renderLinks()}</nav>
-
         <div className="hidden md:flex items-center gap-4">{renderIcons()}</div>
 
         <div className="md:hidden flex items-center gap-2">
@@ -232,7 +243,15 @@ export default function Navbar() {
         <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}>
           <div className="flex flex-col gap-2 py-2 px-4">
             {renderLinks()}
-            <div className="flex items-center gap-4 mt-2">{renderIcons()}</div>
+            <div className="flex items-center gap-2 mt-2">
+              <ThemeToggle />
+              <button
+                onClick={toggleLanguage}
+                className="px-2 py-1 rounded-md border hover:bg-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+              >
+                {i18n.language === "en" ? "عربي" : "EN"}
+              </button>
+            </div>
           </div>
         </div>
       )}

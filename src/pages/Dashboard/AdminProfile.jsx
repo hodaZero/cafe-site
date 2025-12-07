@@ -3,7 +3,7 @@ import { onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
 import { useTheme } from "../../context/ThemeContext";
 import { uploadImage } from "../../sevices/storage_sevices";
-import { updateUser } from "../../firebase/usersServices"; // نفس الخدمة بتاعت User Profile
+import { updateUser } from "../../firebase/usersServices"; 
 import { FaPen } from "react-icons/fa";
 
 export default function AdminProfile() {
@@ -16,7 +16,6 @@ export default function AdminProfile() {
   const { theme } = useTheme();
   const STATIC_AVATAR = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
 
-  // متابعة حالة تسجيل الدخول
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
@@ -27,7 +26,6 @@ export default function AdminProfile() {
     return () => unsubscribe();
   }, []);
 
-  // اختيار صورة جديدة
   const handleImageChange = async () => {
      const fileInput = document.getElementById("profileImageInput").files[0];
      if (!fileInput) return;
@@ -70,7 +68,6 @@ export default function AdminProfile() {
   return (
     <div className={`flex justify-center items-center min-h-screen p-6 ${theme === "light" ? "bg-light-background" : "bg-dark-background"}`}>
       <div className={`rounded-2xl shadow-xl p-8 w-full max-w-md flex flex-col items-center gap-6 backdrop-blur-md ${cardBg} border`}>
-        {/* صورة الادمن مع أيقونة القلم */}
         <div className="relative group">
           <img
             src={localImage || user.photoURL || STATIC_AVATAR}
@@ -89,7 +86,6 @@ export default function AdminProfile() {
           />
         </div>
 
-        {/* بيانات الادمن */}
         <div className="w-full space-y-2 text-center">
           {editingName ? (
             <input

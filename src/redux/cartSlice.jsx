@@ -7,8 +7,8 @@ const initialState = {
   items: [],
   loading: false,
   error: null,
-  orderType: "",       // dineIn / takeAway
-  selectedTable: null, // { id: "abc123", tableNumber: 5 } لو dineIn
+  orderType: "",       
+  selectedTable: null, 
 };
 
 // Fetch cart items
@@ -101,14 +101,12 @@ const cartSlice = createSlice({
     },
     // Set order type
     setOrderType: (state, action) => {
-      state.orderType = action.payload; // dineIn / takeAway
-      if (action.payload === "takeAway") state.selectedTable = null; // مسح الترابيزة لو تيك أوي
+      state.orderType = action.payload; 
+      if (action.payload === "takeAway") state.selectedTable = null; 
     },
-    // Set selected table كامل (object)
     setSelectedTable: (state, action) => {
-      // action.payload = { id: "...", tableNumber: 5 }
       state.selectedTable = action.payload;
-      if (action.payload) state.orderType = "dineIn"; // لو حددنا ترابيزة يبقى dineIn
+      if (action.payload) state.orderType = "dineIn"; 
     },
   },
   extraReducers: (builder) => {

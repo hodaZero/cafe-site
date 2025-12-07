@@ -35,7 +35,7 @@ export const checkStock = createAsyncThunk(
   }
 );
 
-// AI Upsell Suggestion (اختياري)
+// AI Upsell Suggestion
 export const aiUpsell = createAsyncThunk(
   "orderFlow/aiUpsell",
   async (productName, { rejectWithValue }) => {

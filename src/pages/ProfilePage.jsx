@@ -6,6 +6,7 @@ import { uploadImage } from "../sevices/storage_sevices";
 import { updateUser } from "../firebase/usersServices";
 import { FaPen } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -16,6 +17,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("");
 
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const STATIC_AVATAR = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
 
   useEffect(() => {
@@ -30,8 +32,8 @@ export default function ProfilePage() {
   }, []);
 
  const handleImageChange = async (e) => {
-  const fileInput = e.target.files?.[0]; // Use optional chaining
-  if (!fileInput) return; // لو مفيش ملف مختار
+  const fileInput = e.target.files?.[0]; 
+  if (!fileInput) return; 
 
   setUploading(true);
   try {
@@ -73,7 +75,7 @@ export default function ProfilePage() {
     ? "bg-light-background"
     : "bg-dark-background";
 
-  if (!user) return <p className="text-center mt-20">Loading...</p>;
+  if (!user) return <p className="text-center mt-20">{t("profile.loading")}</p>;
 
   return (
     <div className={`flex justify-center items-center min-h-screen p-6 ${containerBg}`}>
@@ -85,7 +87,6 @@ export default function ProfilePage() {
         className={`rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.25),0_10px_20px_rgba(0,0,0,0.15)] p-8 w-full max-w-md flex flex-col items-center gap-6 backdrop-blur-xl border ${cardBg}`}
       >
         
-        {/* صورة المستخدم مع أيقونة القلم */}
         <motion.div className="relative group" whileHover={{ scale: 1.05 }}>
           <motion.img
             src={localImage || user.photoURL || STATIC_AVATAR}
@@ -105,9 +106,8 @@ export default function ProfilePage() {
           />
         </motion.div>
 
-        {/* الاسم editable */}
         <motion.div className="w-full text-center space-y-2">
-          <p className="text-sm text-gray-400">Name:</p>
+          <p className="text-sm text-gray-400">{t("profile.labelName")}</p>
           {editingName ? (
             <input
               type="text"
@@ -127,7 +127,7 @@ export default function ProfilePage() {
               className="flex justify-center items-center gap-2"
               whileHover={{ scale: 1.05 }}
             >
-              <span className="font-semibold text-2xl">{user.displayName || "User"}</span>
+              <span className="font-semibold text-2xl">{user.displayName || t("profile.placeholderUser")}</span>
               <button onClick={() => setEditingName(true)} className="text-light-primary dark:text-dark-primary hover:scale-110 transition-transform">
                 <FaPen />
               </button>
@@ -135,9 +135,8 @@ export default function ProfilePage() {
           )}
         </motion.div>
 
-        {/* الايميل */}
         <motion.div className="w-full text-center space-y-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-          <p className="text-sm text-gray-400">Email:</p>
+          <p className="text-sm text-gray-400">{t("profile.labelEmail")}</p>
           <span className="font-medium text-base">{user.email}</span>
         </motion.div>
 

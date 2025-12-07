@@ -7,7 +7,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import ProductForm from "../../components/ProductForm";
 import { useTheme } from "../../context/ThemeContext";
 import Pagination from "../../components/Pagination";
-import AIChatWindow from "../../components/AIChat/AIChatWindow"; // ✅ دمج الـ AI Chat
+import AIChatWindow from "../../components/AIChat/AIChatWindow"; 
 
 export default function ProductsDashboard() {
   const { theme } = useTheme();
@@ -156,7 +156,6 @@ export default function ProductsDashboard() {
         </div>
       )}
 
-      {/* ✅ دمج الـ AI Chat Window */}
       <AIChatWindow />
     </div>
   );

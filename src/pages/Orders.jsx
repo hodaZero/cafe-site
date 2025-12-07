@@ -1,4 +1,3 @@
-// src/pages/Orders.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import OrderItem from "../components/OrderItem";
 import { useTheme } from "../context/ThemeContext";
@@ -6,16 +5,18 @@ import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
 import Pagination from "../components/Pagination";
 import { generateAnalytics } from "./services/analytics/analyticsEngine";
+import { useTranslation } from "react-i18next"; 
+import i18n from "../i18n"; 
 
 export default function Orders() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // جلب الأوردرات من Firestore بدون أي تعديل تلقائي
   const fetchOrders = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -42,7 +43,6 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  // دالة لإضافة أوردر وتحديث التوصيات
   const handlePlaceOrder = async (orderData) => {
     const user = auth.currentUser;
     if (!user) return;
@@ -64,28 +64,27 @@ export default function Orders() {
 
   const totalPages = Math.ceil(orders.length / itemsPerPage);
 
-  // ألوان المشروع الجاهزة
   const bg = theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-dark-text";
   const cardBg = theme === "light" ? "bg-light-surface text-light-text" : "bg-dark-surface text-dark-text";
 
   if (loading)
     return (
       <div className={`pt-16 min-h-screen flex justify-center items-center ${bg}`}>
-        Loading...
+        {t("ordersPage.loading")}
       </div>
     );
 
   if (!orders.length)
     return (
       <div className={`pt-16 min-h-screen flex justify-center items-center ${bg}`}>
-        No orders yet.
+        {t("ordersPage.noOrders")}
       </div>
     );
 
   return (
     <div className={`pt-20 min-h-screen px-6 transition-all duration-300 ${bg}`}>
       <h1 className={`text-3xl md:text-4xl font-bold pt-10 text-center mb-8`}>
-        MY <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>ORDERS</span>
+        {t("ordersPage.myOrders").split(" ")[0]} <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>{t("ordersPage.myOrders").split(" ")[1]}</span>
       </h1>
 
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
@@ -98,14 +97,14 @@ export default function Orders() {
 
             <div className="mt-4 border-t pt-4 opacity-80 text-sm">
               <p>
-                <span className="font-semibold">Total Salary:</span>{" "}
+                <span className="font-semibold">{t("ordersPage.total")}:</span>{" "}
                 <span className={theme === "light" ? "text-light-primary font-semibold" : "text-dark-primary font-semibold"}>
                   {order.total} EGP
                 </span>
               </p>
 
               <p>
-                <span className="font-semibold">Status:</span>{" "}
+                <span className="font-semibold">{t("ordersPage.status")}:</span>{" "}
                 <span
                   className={
                     order.status === "completed"
@@ -117,7 +116,7 @@ export default function Orders() {
                       : "text-yellow-500 font-semibold"
                   }
                 >
-                  {order.status}
+                  {t(`ordersPage.${order.status}`)}
                 </span>
               </p>
 

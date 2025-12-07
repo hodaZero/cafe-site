@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import ProductCard from "./ProductCard";
-
-// دالة لمقارنة المنتجات حسب الفئة
 const getSimilarProducts = (allProducts, userProductIds) => {
   const similar = [];
   const userProducts = allProducts.filter(p => userProductIds.includes(p.id));
@@ -16,14 +14,12 @@ const getSimilarProducts = (allProducts, userProductIds) => {
     similar.push(...sameCategory);
   });
 
-  // إزالة التكرارات
   const unique = Array.from(new Set(similar.map(p => p.id))).map(
     id => similar.find(p => p.id === id)
   );
   return unique;
 };
 
-// دالة لحساب top selling products من كل الطلبات
 const getTopSellingProducts = (allProducts, orders, limit = 6) => {
   const counter = {};
 
@@ -49,11 +45,9 @@ export default function SmartRecommendations() {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        // جلب كل المنتجات
         const allProductsSnap = await getDocs(collection(db, "products"));
         const allProducts = allProductsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        // جلب كل الطلبات
         const ordersSnap = await getDocs(collection(db, "orders"));
         const allOrders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -61,7 +55,6 @@ export default function SmartRecommendations() {
         let recommendedProducts = [];
 
         if (user) {
-          // طلبات المستخدم الحالي
           const userOrders = allOrders.filter(o => o.userId === user.uid);
           const userProductIds = userOrders.flatMap(o => (o.items || []).map(i => i.id));
 
@@ -73,12 +66,9 @@ export default function SmartRecommendations() {
           }
         }
 
-        // fallback للتوصيات حتى لو مفيش بيانات
         if (recommendedProducts.length === 0) {
-          // جلب top selling products
           recommendedProducts = getTopSellingProducts(allProducts, allOrders);
 
-          // لو top selling برضو فاضي → عرض أول 6 منتجات مباشرة
           if (recommendedProducts.length === 0) {
             recommendedProducts = allProducts.slice(0, 6);
           }

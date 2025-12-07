@@ -76,8 +76,6 @@ export default function AdminOrders() {
         });
       });
     }
-
-    // Sort orders by newest first
     allOrders.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
     setOrders(allOrders);
   };
@@ -86,9 +84,6 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
-  // ==========================
-  // تعديل handleStatusChange لدعم Delivered
-  // ==========================
   const handleStatusChange = async (order, newStatus) => {
     const ref = doc(db, "users", order.userId, "orders", order.id);
     await updateDoc(ref, { status: newStatus });
@@ -96,8 +91,6 @@ export default function AdminOrders() {
     setOrders((prev) =>
       prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
     );
-
-    // إشعار بناءً على الحالة الجديدة
     let title = "";
     let body = "";
     if (newStatus === "completed") {
@@ -121,7 +114,6 @@ export default function AdminOrders() {
       timestamp: serverTimestamp(),
     });
   };
-  // تعديل handleDeleteOrder
   const handleDeleteOrder = async () => {
     if (!orderToDelete) return;
     const actualUserId = orderToDelete.userId.split("/")[0];
@@ -272,7 +264,6 @@ export default function AdminOrders() {
         {currentOrders.map((order) => {
           const isOpen = activeTab === order.id;
 
-          // تحديد الحالات المسموحة حسب نوع الأوردر
           const statusOptions = order.tableNumber !== "N/A"
             ? ["pending", "completed", "rejected"]
             : ["pending", "delivered", "completed", "rejected"];

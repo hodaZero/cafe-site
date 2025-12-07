@@ -5,8 +5,10 @@ import { fetchOrders } from "./services/analytics/dataFetcher";
 import { calcTopSellingProducts, calcTotalSales, calcActiveUsers, calcPeakHours } from "./services/analytics/calculators";
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useTranslation } from "react-i18next";
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [topSellers, setTopSellers] = useState([]);
   const [totalSales, setTotalSales] = useState(0);
@@ -44,19 +46,19 @@ const Dashboard = () => {
       {/* Page Header */}
       <div className="text-center mb-12">
         <h1 className="text-5xl font-extrabold bg-gradient-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg">
-          AI-Driven Analytics Dashboard
+          {t("dashboard.title")}
         </h1>
         <p className="text-lg opacity-80 mt-2">
-          Smart insights powered by your cafe data
+          {t("dashboard.subtitle")}
         </p>
       </div>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         {[
-          { label: "Total Sales", value: `${totalSales} EGP` },
-          { label: "Total Orders", value: orders.length },
-          { label: "Active Users", value: activeUsers.length },
+          { label: t("dashboard.totalSales"), value: `${totalSales} EGP` },
+          { label: t("dashboard.totalOrders"), value: orders.length },
+          { label: t("dashboard.activeUsers"), value: activeUsers.length },
         ].map((item, i) => (
           <div
             key={i}
@@ -77,13 +79,13 @@ const Dashboard = () => {
       {/* Top Selling Chart */}
       <div className={`p-8 rounded-3xl shadow-xl mb-12 ${cardBg} border border-light-inputBorder dark:border-dark-inputBorder`}>
         <h3 className="text-2xl font-semibold mb-6 tracking-wide">
-          Top Selling Products
+          {t("dashboard.topSellingProducts")}
         </h3>
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={topSellers.slice(0, 10)}>
             <XAxis 
               dataKey="name" 
-              tick={{ fontSize: 14, fill: "#FACC15", fontWeight: 600 }} // اسم البرودكت بلون أصفر مميز
+              tick={{ fontSize: 14, fill: "#FACC15", fontWeight: 600 }} 
               stroke="#B45309" 
             />
             <YAxis />
@@ -103,7 +105,7 @@ const Dashboard = () => {
       {/* AI Insights */}
       <div className={`p-8 rounded-3xl shadow-xl ${cardBg} border border-light-inputBorder dark:border-dark-inputBorder`}>
         <h3 className="text-2xl font-semibold mb-4 tracking-wide">
-          AI Insights
+          {t("dashboard.aiInsights")}
         </h3>
         <ul className="space-y-3">
           {aiInsights.map((insight, idx) => (

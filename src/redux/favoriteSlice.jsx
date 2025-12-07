@@ -29,7 +29,6 @@ export const fetchFavorites = createAsyncThunk(
         ...d.data(),
       }));
 
-      // 🔥 منع أي duplicate نهائياً
       const unique = [];
       fetched.forEach((item) => {
         if (!unique.find((u) => u.productId === item.productId)) {
@@ -62,13 +61,12 @@ export const toggleFavorite = createAsyncThunk(
       const existing = state.find((p) => p.productId === productId);
 
       if (existing) {
-        // حذف
+        
         const docRef = doc(db, "users", uid, "favorites", existing.firebaseId);
         await deleteDoc(docRef);
 
         return { productId, removed: true };
       } else {
-        // إضافة
         const docRef = await addDoc(favRef, {
           productId,
           name: product.name,
@@ -117,20 +115,17 @@ const favoriteSlice = createSlice({
 
       // ---------------- TOGGLE ----------------
       .addCase(toggleFavorite.fulfilled, (state, action) => {
-        // 🧨 حذف
         if (action.payload.removed) {
           state.favorites = state.favorites.filter(
             (p) => p.productId !== action.payload.productId
           );
         }
 
-        // ⭐ إضافة بدون تكرار
         if (action.payload.added) {
           const exists = state.favorites.find(
             (p) => p.productId === action.payload.productId
           );
 
-          // 🔥 الحل الحقيقي لمشكلة "المنتجين يبقوا 3"
           if (!exists) {
             state.favorites.push(action.payload);
           }

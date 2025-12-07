@@ -6,10 +6,12 @@ import { db } from "../firebase/firebaseConfig";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { motion } from "framer-motion";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 const AdminTables = () => {
   const { theme } = useTheme();
   const { addNotification } = useNotifications();
+  const { t } = useTranslation();
   const [tables, setTables] = useState([]);
   const [modal, setModal] = useState({ show: false, type: "", tableId: null, floor: "" });
   const [seatsInput, setSeatsInput] = useState(1); 
@@ -54,7 +56,6 @@ const AdminTables = () => {
     setTables(prev => [...prev, { ...newTable, id: docRef.id }]);
   };
 
-  // ⭐ تعديل مهم: لما الحالة تبقى available نمسح reservedBy + نرسل إشعار رفض
   const handleUpdateStatus = async (id, status) => {
     const tableRef = doc(db, "tables", id);
 
@@ -80,25 +81,23 @@ const AdminTables = () => {
 
     const table = tables.find(t => t.id === id);
 
-    // ⭐⭐ التعديل الوحيد المطلوب → لو التربيزة اترفضت (رجعت available)
     if (table?.reservedBy && status === "available") {
       await addNotification({
         to: table.reservedBy,
         from: "admin",
         type: "table_status",
-        title: `Table ${table.tableNumber} Rejected`,
+        title: t("adminTable.rejectedTitle", { number: table.tableNumber }),
         body: `Your table ${table.tableNumber} reservation has been rejected by admin.`,
         relatedId: id
       });
     }
 
-    // موافقة التربيزة نفس ما هو
     if (table?.reservedBy && status === "occupied") {
       await addNotification({
         to: table.reservedBy,
         from: "admin",
         type: "table_status",
-        title: `Table ${table.tableNumber} Approved`,
+        title: t("adminTable.approvedTitle", { number: table.tableNumber }),
         body: `Your table ${table.tableNumber} has been approved by admin.`,
         relatedId: id
       });
@@ -112,27 +111,27 @@ const AdminTables = () => {
 
   return (
     <div className={`pt-16 min-h-screen flex flex-col items-center py-12 px-6 transition-colors duration-300 ${bgMain}`}>
-      <h1 className="text-4xl font-bold text-primary mb-8 text-center drop-shadow-lg">Admin Tables</h1>
+      <h1 className="text-4xl font-bold text-primary mb-8 text-center drop-shadow-lg">{t("adminTable.title")}</h1>
 
       {floors.map(floor => (
         <div key={floor} className="w-full max-w-7xl mb-12">
-          <h2 className="text-2xl font-semibold mb-4" style={{ color: "#B45309" }}>{floor}</h2>
+          <h2 className="text-2xl font-semibold mb-4" style={{ color: "#B45309" }}>{t(`userTables.${floor.toLowerCase()}`)}</h2>
 
           <div className="flex justify-center items-center gap-6 mb-6 flex-wrap">
             <button
               onClick={() => setModal({ show: true, type: "add", floor })}
               className="px-6 py-2 rounded-xl font-semibold transition bg-[#B45309] text-white hover:bg-[#92400E] shadow-lg"
             >
-              Add Table
+              {t("adminTable.addNewTableQuestion")}
             </button>
             <div className="px-4 py-2 rounded-xl bg-green-600 font-semibold shadow-md">
-              Available: {tables.filter(t => t.floor === floor && t.status === "available").length}
+              {t("adminTable.available")}: {tables.filter(t => t.floor === floor && t.status === "available").length}
             </div>
             <div className="px-4 py-2 rounded-xl bg-red-600 font-semibold shadow-md">
-              Occupied: {tables.filter(t => t.floor === floor && t.status === "occupied").length}
+              {t("adminTable.occupied")}: {tables.filter(t => t.floor === floor && t.status === "occupied").length}
             </div>
             <div className="px-4 py-2 rounded-xl bg-yellow-400 font-semibold shadow-md">
-              Pending: {tables.filter(t => t.floor === floor && t.status === "pending").length}
+              {t("adminTable.pending")}: {tables.filter(t => t.floor === floor && t.status === "pending").length}
             </div>
           </div>
 
@@ -168,8 +167,8 @@ const AdminTables = () => {
                           ${table.status === "available" ? "bg-green-500 hover:bg-green-600" : ""} 
                           ${table.status === "occupied" ? "bg-red-500 hover:bg-red-600" : ""}`}
                       >
-                        <option value="available">Available</option>
-                        <option value="occupied">Occupied</option>
+                        <option value="available">{t("adminTable.setAvailable")}</option>
+                        <option value="occupied">{t("adminTable.setOccupied")}</option>
                       </select>
                     )}
 
@@ -177,13 +176,13 @@ const AdminTables = () => {
                       onClick={() => setModal({ show: true, type: "delete", tableId: table.id })}
                       className="px-2 py-1 rounded-md font-semibold bg-gray-700 text-white hover:bg-gray-800 shadow-md text-sm"
                     >
-                      Delete
+                      {t("navbar.delete")}
                     </button>
                   </div>
 
                   {table.userName && (
                     <p className="text-center mt-1 text-xs font-semibold text-[#B45309]">
-                      Booked by: {table.userName}
+                      {t("adminTable.bookedBy")}: {table.userName}
                     </p>
                   )}
                 </motion.div>
@@ -200,12 +199,12 @@ const AdminTables = () => {
             className="bg-white dark:bg-[#151515] text-black dark:text-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center gap-6"
           >
             <h2 className="text-2xl font-bold text-center">
-              {modal.type === "add" ? "Add new table?" : "Are you sure you want to delete this table?"}
+              {modal.type === "add" ? t("adminTable.addNewTableQuestion") : t("adminTable.deleteTableQuestion")}
             </h2>
 
             {modal.type === "add" && (
               <div className="flex flex-col w-full">
-                <label className="text-sm font-medium mb-1">Number of Seats</label>
+                <label className="text-sm font-medium mb-1">{t("adminTable.numberOfSeats")}</label>
                 <input
                   type="number"
                   min={1}
@@ -227,13 +226,13 @@ const AdminTables = () => {
                 }}
                 className="px-6 py-2 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 shadow-md"
               >
-                Confirm
+                {t("adminTable.confirm")}
               </button>
               <button
                 onClick={() => setModal({ show: false, type: "", tableId: null, floor: "" })}
                 className="px-6 py-2 bg-gray-400 text-white font-semibold rounded-xl hover:bg-gray-500 shadow-md"
               >
-                Cancel
+                {t("adminTable.close")}
               </button>
             </div>
           </motion.div>

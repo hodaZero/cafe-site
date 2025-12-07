@@ -1,0 +1,148 @@
+{
+  "navbar": {
+    "home": "الرئيسية",
+    "menu": "القائمة",
+    "myOrders": "طلباتي",
+    "tables": "الطاولات",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "notifications": "الإشعارات",
+    "clearAll": "مسح الكل",
+    "noNotifications": "لا توجد إشعارات",
+    "delete": "حذف"
+  },
+  "auth": {
+  "name": "الاسم",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "signIn": "تسجيل الدخول",
+  "signUp": "إنشاء حساب",
+  "signInGoogle": "تسجيل الدخول بجوجل",
+  "signUpGoogle": "إنشاء حساب بجوجل",
+  "emailRequired": "البريد الإلكتروني مطلوب",
+  "emailInvalid": "صيغة البريد الإلكتروني غير صحيحة",
+  "passwordRequired": "كلمة المرور مطلوبة",
+  "passwordMin6": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+  "nameRequired": "الاسم مطلوب",
+  "verifyEmailMsg": "يرجى تأكيد البريد الإلكتروني قبل تسجيل الدخول",
+  "registrationSuccess": "تم التسجيل بنجاح!"
+  },
+  "home": {
+    "our": "قائمة",
+    "menu": "الطعام",
+    "recommended": "مُوصى به لك"
+  },
+  "profile": {
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "loading": "جاري التحميل...",
+    "labelName": "الاسم:",
+    "labelEmail": "البريد الإلكتروني:",
+    "placeholderUser": "مستخدم"
+  },
+  "productDetails": {
+    "loadingProduct": "جاري تحميل المنتج...",
+    "productNotFound": "المنتج غير موجود",
+    "addToCart": "أضف إلى السلة",
+    "removeFromCart": "إزالة من السلة"
+  },
+  "favorites": {
+    "loading": "جاري التحميل...",
+    "empty": "لا مفضلات بعد، أضف بعض المنتجات من القائمة!"
+  },
+  "dashboard": {
+  "title": "لوحة تحليلات مدفوعة بالذكاء الاصطناعي",
+  "subtitle": "رؤى ذكية مدعومة ببيانات المقهى",
+  "totalSales": "إجمالي المبيعات",
+  "totalOrders": "إجمالي الطلبات",
+  "activeUsers": "المستخدمون النشطون",
+  "topSellingProducts": "أكثر المنتجات مبيعًا",
+  "aiInsights": "رؤى الذكاء الاصطناعي",
+  "menuDashboard": "لوحة التحكم",
+  "notification": "الإشعارات",
+  "products": "المنتجات",
+  "orders": "الطلبات",
+  "tables": "الطاولات",
+  "profile": "الملف الشخصي",
+  "logout": "تسجيل الخروج"
+
+  },
+  "menuPage": {
+    "ourMenu": "قائمة الطعام"
+  },
+  "userTables": {
+    "selectYourTable": "اختر طاولتك",
+    "upstairs": "الطابق العلوي",
+    "downstairs": "الطابق السفلي",
+    "available": "متاحة",
+    "occupied": "مشغولة",
+    "pending": "قيد الانتظار",
+    "pendingApproval": "في انتظار الموافقة...",
+    "adminApproved": "تمت الموافقة من المشرف!",
+    "reserveTable": "حجز طاولة",
+    "reserveTableConfirm": "هل أنت متأكد من حجز الطاولة رقم {{number}}؟",
+    "reserve": "حجز",
+    "cancel": "إلغاء",
+    "newTableRequest": "طلب حجز طاولة جد��د",
+    "userRequestedTable": "قام المستخدم بطلب الطاولة {{number}}"
+  },
+  "adminTable": {
+    "title": "إدارة الطاولات",
+    "floor": "الطابق",
+    "available": "متاحة",
+    "occupied": "مشغولة",
+    "pending": "قيد الانتظار",
+    "addNewTableQuestion": "إضافة طاولة جديدة؟",
+    "deleteTableQuestion": "هل أنت متأكد من حذف هذه الطاولة؟",
+    "numberOfSeats": "عدد المقاعد",
+    "status": "الحالة",
+    "setAvailable": "متاحة",
+    "setOccupied": "مشغولة",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "approvedTitle": "تمت الموافقة على الطاولة {{number}}",
+    "rejectedTitle": "تم رفض الطاولة {{number}}"
+  },
+  
+  "ordersPage": {
+    "myOrders": "طلباتي",
+    "loading": "جاري التحميل...",
+    "noOrders": "لا توجد طلبات حتى الآن.",
+    "total": "إجمالي الراتب",
+    "status": "الحالة",
+    "completed": "مكتمل",
+    "rejected": "مرفوض",
+    "delivered": "تم التوصيل",
+    "pending": "قيد الانتظار"
+  },
+  "common": {
+    "notFound": "404 - غير موجود"
+  },
+  "footer": {
+    "home": "الرئيسية",
+    "about": "من نحن",
+    "menu": "القائمة",
+    "products": "المنتجات",
+    "service": "الخدمات",
+    "contact": "تواصل",
+    "blogs": "المدونة",
+    "copyright": "تم الإنشاء بواسطة Vijay | جميع الحقوق محفوظة © {{year}}"
+  },
+  "hero": {
+  "title": "استمتع بأفضل فنجان",
+  "subtitle": "قهوة طازجة محضّرة خصيصًا لك",
+  "button": "اطلب الآن"
+},
+"contact":
+{
+  "contact_us": "اتصل بنا",
+  "name": "الاسم",
+  "email": "البريد الإلكتروني",
+  "mobile": "رقم الهاتف",
+  "contact_now": "أرسل"
+}
+
+}
+
+
