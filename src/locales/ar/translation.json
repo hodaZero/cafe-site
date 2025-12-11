@@ -71,22 +71,22 @@
   "menuPage": {
     "ourMenu": "قائمة الطعام"
   },
-  "userTables": {
-    "selectYourTable": "اختر طاولتك",
-    "upstairs": "الطابق العلوي",
-    "downstairs": "الطابق السفلي",
-    "available": "متاحة",
-    "occupied": "مشغولة",
-    "pending": "قيد الانتظار",
-    "pendingApproval": "في انتظار الموافقة...",
-    "adminApproved": "تمت الموافقة من المشرف!",
-    "reserveTable": "حجز طاولة",
-    "reserveTableConfirm": "هل أنت متأكد من حجز الطاولة رقم {{number}}؟",
-    "reserve": "حجز",
-    "cancel": "إلغاء",
-    "newTableRequest": "طلب حجز طاولة جد��د",
-    "userRequestedTable": "قام المستخدم بطلب الطاولة {{number}}"
-  },
+ "userTables": {
+  "selectYourTable": "اختر طاولتك",
+  "upstairs": "الطابق العلوي",
+  "downstairs": "الطابق السفلي",
+  "available": "متاحة",
+  "occupied": "مشغولة",
+  "pending": "قيد الانتظار",
+  "pendingApproval": "في انتظار الموافقة...",
+  "adminApproved": "تمت الموافقة من المشرف!",
+  "reserveTable": "حجز طاولة",
+  "reserveTableConfirm": "هل أنت متأكد من حجز الطاولة رقم {{number}}؟",
+  "reserve": "حجز",
+  "cancel": "إلغاء",
+  "newTableRequest": "طلب حجز طاولة جديد",
+  "userRequestedTable": "قام المستخدم بطلب الطاولة {{number}}"
+},
   "adminTable": {
     "title": "إدارة الطاولات",
     "floor": "الطابق",

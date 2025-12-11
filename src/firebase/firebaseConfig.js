@@ -1,8 +1,36 @@
+// // src/firebase/firebaseConfig.js
+// import { initializeApp } from "firebase/app";
+// import { getAnalytics } from "firebase/analytics";
+// import { getFirestore } from "firebase/firestore";
+// import { getAuth } from "firebase/auth";
+// const firebaseConfig = {
+//   apiKey: "AIzaSyC9BXGasT4XsNZTuAB7pk0TiX3i80zmmkw",
+//   authDomain: "domicafe-42e28.firebaseapp.com",
+//   projectId: "domicafe-42e28",
+//   storageBucket: "domicafe-42e28.firebasestorage.app",
+//   messagingSenderId: "244752715172",
+//   appId: "1:244752715172:web:56be1b9b5e0fb8463cc531",
+//   measurementId: "G-EW790LGTB7"
+// };
+
+
+// // Initialize Firebase
+// const app = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(app);
+// const db = getFirestore(app);
+// const auth = getAuth(app);
+
+// export { app, analytics, db, auth };
+
+
+
 // src/firebase/firebaseConfig.js
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getAnalytics, isSupported } from "firebase/analytics";
+
+// إعدادات Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC9BXGasT4XsNZTuAB7pk0TiX3i80zmmkw",
   authDomain: "domicafe-42e28.firebaseapp.com",
@@ -13,11 +41,21 @@ const firebaseConfig = {
   measurementId: "G-EW790LGTB7"
 };
 
-
-// Initialize Firebase
+// تهيئة Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Firestore و Auth (شغالين دايمًا)
 const db = getFirestore(app);
 const auth = getAuth(app);
+
+// Analytics: يتحقق أولاً لو المتصفح مدعوم وبيشتغل بس في الإنتاج
+let analytics;
+if (process.env.NODE_ENV === "production") {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  });
+}
 
 export { app, analytics, db, auth };

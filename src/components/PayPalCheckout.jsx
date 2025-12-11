@@ -9,7 +9,7 @@ export default function PayPalCheckout() {
   const [status, setStatus] = useState("idle"); 
   const [details, setDetails] = useState(null);
 
-  const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID_SANDBOX || "";
+  const clientId = 'AerdwPLhMs0D6pRMszgCitBehhTLU6iaqFyB11Tp8GSKSuUuSjqa0IJGI-NYGCOE5PLx-WMnBbhQRv_n' || "";
 
   const initialOptions = {
     "client-id": clientId,
@@ -53,37 +53,41 @@ export default function PayPalCheckout() {
 
                     <div className="flex flex-col gap-3">
                       <PayPalButtons
-                        style={{ layout: "vertical", color: "gold", shape: "rect", label: "paypal" }}
-                        createOrder={(data, actions) => {
-                          setStatus("processing");
-                          return actions.order.create({
-                            purchase_units: [
-                              {
-                                amount: { value: amount, currency_code: currency },
-                                description,
-                              },
-                            ],
-                          });
-                        }}
-                       onApprove={async (data, actions) => {
-  try {
-    const capture = await actions.order.capture();
-    setDetails(capture);
-    setStatus("succeeded");
-  } catch (err) {
-    console.error("capture error", err);
+  style={{ layout: "vertical", color: "gold", shape: "rect", label: "paypal" }}
+  createOrder={(data, actions) => {
+    console.log("Creating order...", data); // هنا
+    setStatus("processing");
+    return actions.order.create({
+      purchase_units: [
+        {
+          amount: { value: amount, currency_code: currency },
+          description,
+        },
+      ],
+    });
+  }}
+  onApprove={async (data, actions) => {
+    console.log("Approving order...", data); // هنا
+    try {
+      const capture = await actions.order.capture();
+      console.log("Capture details:", capture); // وهنا بعد النجاح
+      setDetails(capture);
+      setStatus("succeeded");
+    } catch (err) {
+      console.error("Capture error:", err); // وهنا لو فيه خطأ
+      setStatus("error");
+    }
+  }}
+  onCancel={() => {
+    console.log("Payment cancelled"); // اختياري
+    setStatus("idle");
+  }}
+  onError={(err) => {
+    console.error("PayPal Buttons error:", err); // هنا
     setStatus("error");
-  }
+  }}
+/>
 
-                        }}
-                        onCancel={() => {
-                          setStatus("idle");
-                        }}
-                        onError={(err) => {
-                          console.error("PayPal Buttons error:", err);
-                          setStatus("error");
-                        }}
-                      />
 
                       <div className="text-xs text-gray-400">Tip: if no PayPal login popup appears, check that your browser allows popups and that you’re using the SANDBOX client ID.</div>
                     </div>
@@ -109,20 +113,6 @@ export default function PayPalCheckout() {
               )}
             </div>
 
-            <div className="mt-6 text-sm text-gray-500">
-              <strong>Testing notes:</strong>
-              <ol className="list-decimal ml-5 mt-2 space-y-1">
-                <li>Use a <em>Sandbox</em> Business app Client ID in <code>.env</code> as <code>REACT_APP_PAYPAL_CLIENT_ID_SANDBOX</code>.</li>
-                <li>Open PayPal popup and log in with a <em>Sandbox buyer</em> account (create one from developer.paypal.com).</li>
-                <li>If you get SMS verification issues on PayPal when logging into the sandbox buyer, try a different sandbox buyer account or use a different browser/profile.</li>
-              </ol>
-            </div>
-
-          </div>
-
-          <div className="border-t px-6 py-4 bg-gray-50 flex items-center justify-between">
-            <div className="text-xs text-gray-500">Built for testing — Drop into any page.</div>
-            <div className="text-xs text-gray-500">Need a backend? ask and I'll add Node.js example</div>
           </div>
         </div>
       </div>

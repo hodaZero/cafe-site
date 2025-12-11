@@ -11,11 +11,10 @@ import { auth } from "../firebase/firebaseConfig";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n"; 
 
-
 export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen: setIsOpenProp }) {
   const { pathname } = useLocation();
   const { theme } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isOpenLocal, setIsOpenLocal] = useState(false);
   const { notifications, clearAll, deleteNotification, markAsRead, unreadCount } = useNotifications();
@@ -33,17 +32,16 @@ export default function Sidebar({ isMobileTrigger, isOpen: isOpenProp, setIsOpen
     }
   };
 
-const links = [
-  { name: t("dashboard.menuDashboard"), path: "/admin/dashboard", icon: <FaClipboardList size={16} />, isButton: false },
-  { name: t("dashboard.notification"), icon: <Bell size={16} />, isButton: true, onClick: () => setNotifOpen(prev => !prev) },
-  { name: t("dashboard.products"), path: "/admin/products", icon: <FaBox size={16} />, isButton: false },
-  { name: t("dashboard.orders"), path: "/admin/orders", icon: <FaClipboardList size={16} />, isButton: false },
-  { name: t("dashboard.tables"), path: "/admin/tables", icon: <FaChair size={16} />, isButton: false },
-  { name: t("dashboard.profile"), path: "/admin/profile", icon: <FaUserCircle size={16} />, isButton: false },
-  { name: t("dashboard.logout"), icon: <FaSignOutAlt size={16} />, isButton: true, onClick: handleLogout },
-];
-
-
+  // ✅ تم إضافة key لكل link
+  const links = [
+    { key: "dashboard", name: t("dashboard.menuDashboard"), path: "/admin/dashboard", icon: <FaClipboardList size={16} />, isButton: false },
+    { key: "notification", name: t("dashboard.notification"), icon: <Bell size={16} />, isButton: true, onClick: () => setNotifOpen(prev => !prev) },
+    { key: "products", name: t("dashboard.products"), path: "/admin/products", icon: <FaBox size={16} />, isButton: false },
+    { key: "orders", name: t("dashboard.orders"), path: "/admin/orders", icon: <FaClipboardList size={16} />, isButton: false },
+    { key: "tables", name: t("dashboard.tables"), path: "/admin/tables", icon: <FaChair size={16} />, isButton: false },
+    { key: "profile", name: t("dashboard.profile"), path: "/admin/profile", icon: <FaUserCircle size={16} />, isButton: false },
+    { key: "logout", name: t("dashboard.logout"), icon: <FaSignOutAlt size={16} />, isButton: true, onClick: handleLogout },
+  ];
 
   const sidebarBg = theme === "light" ? "bg-light-surface border-light-inputBorder" : "bg-dark-surface border-dark-inputBorder";
   const linkText = theme === "light" ? "text-light-text" : "text-dark-text";
@@ -67,15 +65,15 @@ const links = [
       }`}
     >
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-semibold text-lg">Notifications</h3>
+        <h3 className="font-semibold text-lg">{t("navbar.notifications")}</h3>
         {notifications.length > 0 && (
           <button onClick={clearAll} className="text-sm text-red-500 hover:underline">
-            Clear All
+            {t("navbar.clearAll")}
           </button>
         )}
       </div>
       {notifications.length === 0 ? (
-        <p className="text-center py-3 opacity-70">No notifications</p>
+        <p className="text-center py-3 opacity-70">{t("navbar.noNotifications")}</p>
       ) : (
         <div className="max-h-60 overflow-y-auto">
           {notifications.map((n) => (
@@ -93,7 +91,7 @@ const links = [
                     deleteNotification(n.id);
                   }}
                 >
-                  Delete
+                  {t("navbar.delete")}
                 </button>
               </div>
               <p className="text-sm opacity-90">{n.body}</p>
@@ -190,7 +188,7 @@ function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, 
                 className={`flex items-center py-2 px-3 rounded-lg w-full transition-colors ${linkHover} ${linkText} relative`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (item.name === "Notification") setNotifOpen(prev => !prev);
+                  if (item.key === "notification") setNotifOpen(prev => !prev);
                   else if (item.onClick) item.onClick();
                 }}
               >
@@ -198,7 +196,7 @@ function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, 
                   {item.icon}
                   <span className="font-medium text-sm">{item.name}</span>
 
-                  {item.name === "Notification" && unreadCount > 0 && (
+                  {item.key === "notification" && unreadCount > 0 && (
                     <span className="absolute right-1 w-5 h-5 text-xs flex items-center justify-center bg-orange-500 text-white rounded-full">
                       {unreadCount}
                     </span>
@@ -216,7 +214,7 @@ function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, 
                   {item.icon}
                   <span className="font-medium text-sm">{item.name}</span>
 
-                  {item.name === "Notification" && unreadCount > 0 && (
+                  {item.key === "notification" && unreadCount > 0 && (
                     <span className="absolute right-5 w-5 h-5 text-xs flex items-center justify-center bg-orange-500 text-white rounded-full">
                       {unreadCount}
                     </span>
@@ -225,7 +223,7 @@ function SidebarContent({ pathname, activeBg, linkHover, linkText, links, logo, 
               </Link>
             )}
 
-            {item.name === "Notification" && notifOpen && <NotificationPopup />}
+            {item.key === "notification" && notifOpen && <NotificationPopup />}
           </li>
         ))}
       </ul>

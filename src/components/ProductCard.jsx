@@ -8,12 +8,15 @@ import { useTheme } from "../context/ThemeContext";
 import { auth } from "../firebase/firebaseConfig";
 
 const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavorite = false }) => {
+  // استدعاء كل الـ Hooks في البداية
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const { theme } = useTheme();
   const favorites = useSelector((state) => state.favorite?.favorites || []);
   const cartItems = useSelector((state) => state.cart?.items || []);
-  const { theme } = useTheme();
+
+  // حماية ضد undefined بعد استدعاء الـ Hooks
+  if (!product) return null;
 
   const productId = product.id || product.productId;
 
@@ -25,7 +28,7 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
   const handleToggleFavorite = (e) => {
     e.stopPropagation();
     if (!auth.currentUser) {
-      navigate("/login"); 
+      navigate("/login");
       return;
     }
     dispatch(toggleFavorite({ ...product, productId }));
@@ -34,7 +37,7 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
   const handleToggleCart = (e) => {
     e.stopPropagation();
     if (!auth.currentUser) {
-      navigate("/login"); 
+      navigate("/login");
       return;
     }
 
@@ -69,22 +72,21 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
 
       <div className="flex justify-center mb-4">
         <img
-          src={product.image}
-          alt={product.name}
+          src={product.image || "https://via.placeholder.com/150"}
+          alt={product.name || "Product Image"}
           className="w-32 h-32 object-cover rounded-full"
         />
       </div>
 
-      <h3 className="text-lg font-semibold text-center">{product.name}</h3>
+      <h3 className="text-lg font-semibold text-center">{product.name || "Unnamed Product"}</h3>
 
       <div className={`flex justify-center items-center gap-4 text-sm mb-2 ${priceColor}`}>
-        <p>₹{product.price}.00</p>
-        <span>{product.rating}</span>
+        <p>₹{product.price ?? 0}.00</p>
+        <span>{product.rating ?? 0}</span>
       </div>
 
       {!showHeartTop && !hideFavorite && (
         <div className="flex justify-center gap-4 mt-3">
-          {/* Favorite Button */}
           <button
             onClick={handleToggleFavorite}
             className={`p-2 rounded-full transition ${isFavorite ? heartActive : heartInactive}`}
@@ -92,7 +94,6 @@ const ProductCard = ({ product, showCart = true, showHeartTop = false, hideFavor
             <Heart size={18} fill={isFavorite ? "#fff" : "none"} />
           </button>
 
-          {/* Cart Button */}
           {showCart && (
             <button
               onClick={handleToggleCart}
