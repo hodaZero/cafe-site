@@ -1,4 +1,3 @@
-// redux/cartSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { db, auth } from "../firebase/firebaseConfig";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
@@ -50,7 +49,7 @@ export const toggleCartItem = createAsyncThunk(
         const docRef = doc(db, "users", uid, "cart", existing.firebaseId);
         const newQty = existing.quantity + quantity;
         await updateDoc(docRef, { quantity: newQty });
-        return { firebaseId: existing.firebaseId, productId, quantity: newQty };
+        return { firebaseId: existing.firebaseId, productId, quantity: newQty, stock: existing.stock };
       } else {
         const docRef = await addDoc(cartRef, {
           productId,
@@ -58,8 +57,9 @@ export const toggleCartItem = createAsyncThunk(
           image: product.image,
           price: product.price,
           quantity,
+          stock: Number(product.stock) || Number(product.quantity) || 1,
         });
-        return { firebaseId: docRef.id, productId, name: product.name, image: product.image, price: product.price, quantity };
+        return { firebaseId: docRef.id, productId, name: product.name, image: product.image, price: product.price, quantity, stock: Number(product.stock) || Number(product.quantity) || 1 };
       }
     } catch (err) {
       return rejectWithValue(err.message);
@@ -93,13 +93,12 @@ const cartSlice = createSlice({
   reducers: {
     increaseQty: (state, action) => {
       const item = state.items.find(i => i.productId === action.payload);
-      if (item) item.quantity += 1;
+      if (item && item.quantity < item.stock) item.quantity += 1;
     },
     decreaseQty: (state, action) => {
       const item = state.items.find(i => i.productId === action.payload);
       if (item && item.quantity > 1) item.quantity -= 1;
     },
-    // Set order type
     setOrderType: (state, action) => {
       state.orderType = action.payload; 
       if (action.payload === "takeAway") state.selectedTable = null; 
@@ -118,6 +117,7 @@ const cartSlice = createSlice({
         const exists = state.items.find(i => i.productId === action.payload.productId);
         if (exists) {
           exists.quantity = action.payload.quantity;
+          exists.stock = action.payload.stock || exists.stock;
         } else {
           state.items.push(action.payload);
         }

@@ -83,9 +83,21 @@ export default function Orders() {
 
   return (
     <div className={`pt-20 min-h-screen px-6 transition-all duration-300 ${bg}`}>
-      <h1 className={`text-3xl md:text-4xl font-bold pt-10 text-center mb-8`}>
-        {t("ordersPage.myOrders").split(" ")[0]} <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>{t("ordersPage.myOrders").split(" ")[1]}</span>
-      </h1>
+    <h1
+  className="text-2xl md:text-4xl font-bold pt-10 text-center mb-12"
+  style={{
+    fontFamily: "'Playwrite CZ', cursive",
+    letterSpacing: "1px",
+  }}
+>
+  <span className={theme === "light" ? "text-black" : "text-white"}>
+    {t("ordersPage.myOrders").split(" ")[0]}
+  </span>{" "}
+  <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>
+    {t("ordersPage.myOrders").split(" ").slice(1).join(" ")}
+  </span>
+</h1>
+
 
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
         {paginatedOrders.map(order => (

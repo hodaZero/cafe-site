@@ -1,31 +1,59 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import backgroundPic from "../../assets/images/backgroundPic.jpg";
-import { loginUser, loginWithGoogle, resendVerificationEmail, registerUser } from "../../firebase/auth";
+import {
+  loginUser,
+  loginWithGoogle,
+  resendVerificationEmail,
+  registerUser
+} from "../../firebase/auth";
+import {
+  AiOutlineEye,
+  AiOutlineEyeInvisible,
+  AiOutlineMail,
+  AiOutlineUser,
+  AiOutlineLock
+} from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { useTheme } from "../../context/ThemeContext";
+import bgImg from "../../assets/images/im.png";
+import Navbar from "../../components/Navbar";
+import { useTranslation } from "react-i18next";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
-import { useTranslation } from "react-i18next";
 
 export default function AuthPage() {
-  const { theme } = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
+
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState({});
   const [infoMsg, setInfoMsg] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const validateEmail = (email) => !email ? t("emailRequired") : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailInvalid");
-  const validatePassword = (password) => !password ? t("passwordRequired") : password.length < 6 ? t("passwordMin6") : "";
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  // ---------------- Validation ----------------
+  const validateEmail = (email) =>
+    !email ? t("emailRequired") : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : t("emailInvalid");
+
+  const validatePassword = (password) =>
+    !password ? t("passwordRequired") : password.length < 6 ? t("passwordMin") : "";
+
   const validateName = (name) => (!name ? t("nameRequired") : "");
 
+  const validateConfirmPassword = (password, confirmPassword) =>
+    password !== confirmPassword ? t("passwordMismatch") : "";
+
+  // ---------------- Role fetch ----------------
   const fetchUserRole = async (uid) => {
     const ref = doc(db, "users", uid);
     const snapshot = await getDoc(ref);
@@ -38,9 +66,10 @@ export default function AuthPage() {
     else navigate("/");
   };
 
+  // ---------------- Login ----------------
   const handleLogin = async (e) => {
     e.preventDefault();
-    setErrors({}); setInfoMsg(""); setSubmitError("");
+    setErrors({}); setInfoMsg(""); setSubmitError(""); setSuccessMsg("");
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
     if (emailError || passwordError) return setErrors({ email: emailError, password: passwordError });
@@ -56,23 +85,27 @@ export default function AuthPage() {
     }
   };
 
+  // ---------------- Register ----------------
   const handleRegister = async (e) => {
     e.preventDefault();
-    setErrors({}); setSubmitError(""); setSuccessMsg("");
+    setErrors({}); setSubmitError(""); setSuccessMsg(""); setInfoMsg("");
     const nameError = validateName(formData.name);
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-    if (nameError || emailError || passwordError) return setErrors({ name: nameError, email: emailError, password: passwordError });
+    const confirmError = validateConfirmPassword(formData.password, formData.confirmPassword);
+    if (nameError || emailError || passwordError || confirmError) 
+      return setErrors({ name: nameError, email: emailError, password: passwordError, confirmPassword: confirmError });
 
     try {
       await registerUser(formData.email, formData.password, formData.name);
       setSuccessMsg(t("registrationSuccess"));
-      setFormData({ name: "", email: "", password: "" });
+      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
     } catch (err) {
       setSubmitError(err.message);
     }
   };
 
+  // ---------------- Google Login ----------------
   const handleGoogleLogin = async () => {
     try {
       const firebaseUser = await loginWithGoogle();
@@ -82,89 +115,156 @@ export default function AuthPage() {
     }
   };
 
-  const cardBg = theme === "light"
-    ? "bg-gradient-to-br from-light-background/90 to-light-surface/90 text-light-text shadow-2xl"
-    : "bg-gradient-to-br from-dark-background/90 to-dark-surface/90 text-dark-text shadow-2xl";
-
-  const inputBorder = theme === "light"
-    ? "border-light-inputBorder bg-light-input placeholder-gray-400"
-    : "border-dark-inputBorder bg-dark-input placeholder-gray-500";
-
-  const primaryBtn = theme === "light"
-    ? "bg-light-primary hover:bg-light-primaryHover text-white"
-    : "bg-dark-primary hover:bg-dark-primaryHover text-black";
-
-  const focusRing = theme === "light" ? "focus:ring-light-primary" : "focus:ring-dark-primaryHover";
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${backgroundPic})` }} />
-      <div className={`absolute inset-0 ${theme === "light" ? "bg-light-background/50" : "bg-dark-background/60"} backdrop-blur-sm`}></div>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* ===== Background ===== */}
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "left 20% center",
+          filter: "blur(4px)",
+          transform: "scale(1.05)"
+        }}
+      />
+      <div className="absolute inset-0 bg-black/20 -z-10" />
 
-      <div className={`relative z-10 p-10 sm:p-12 rounded-2xl w-full max-w-md ${cardBg}`}>
-        <form
-          key={isLogin ? "login" : "signup"}
-          className="space-y-4"
-          onSubmit={isLogin ? handleLogin : handleRegister}
-        >
-          {!isLogin && (
-            <input type="text" name="name" placeholder={t("name")}
-              className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
-              value={formData.name} onChange={handleChange} />
-          )}
-          {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+      <Navbar />
 
-          <input type="email" name="email" placeholder={t("email")}
-            className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
-            value={formData.email} onChange={handleChange} />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+      {/* ===== Form Wrapper ===== */}
+      <div className="flex justify-end items-start min-h-screen pt-24">
+        <div className="w-full max-w-md p-6 rounded-3xl shadow-2xl bg-white mr-[180px]">
 
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder={t("password")}
-              className={`w-full px-4 py-3 rounded-xl border ${inputBorder} focus:ring-2 ${focusRing} outline-none transition`}
-              value={formData.password} onChange={handleChange}
-            />
+          {/* Image */}
+          <div className="flex justify-center mb-4">
+            <img src={bgImg} alt="form" className="w-28 h-28 object-contain" />
+          </div>
+
+          {/* Toggle */}
+          <div className="flex justify-center gap-6 mb-4">
             <button
-              type="button"
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500"
-              onClick={() => setShowPassword(prev => !prev)}
+              onClick={() => setIsLogin(true)}
+              className={`font-semibold ${isLogin ? "text-[#b87c4c] underline" : "text-[#8c6239]"}`}
             >
-              {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+              Sign In
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`font-semibold ${!isLogin ? "text-[#b87c4c] underline" : "text-[#8c6239]"}`}
+            >
+              Sign Up
             </button>
           </div>
-          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
 
-          {isLogin && (
-            <p className={`${theme === "light" ? "text-light-primary" : "text-dark-primaryHover"} text-sm cursor-pointer text-right`} onClick={() => navigate("/forgot-password")}>
-              {t("forgotPassword")}
-            </p>
-          )}
+          <form className="space-y-3" onSubmit={isLogin ? handleLogin : handleRegister}>
+            {!isLogin && (
+              <div className="relative">
+                <AiOutlineUser className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b69b7b]" />
+                <input
+                  name="name"
+                  placeholder={t("name")}
+                  className="w-full pl-10 py-2 rounded-xl border"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              </div>
+            )}
 
-          <button type="submit" className={`w-full py-3 rounded-xl font-semibold ${primaryBtn}`}>
-            {isLogin ? t("signIn") : t("signUp")}
-          </button>
+            <div className="relative">
+              <AiOutlineMail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b69b7b]" />
+              <input
+                name="email"
+                placeholder={t("email")}
+                className="w-full pl-10 py-2 rounded-xl border"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            </div>
 
-          <button type="button" onClick={handleGoogleLogin}
-            className="w-full mt-2 flex items-center justify-center gap-2 py-3 rounded-xl border border-light-primary hover:scale-105 transition-transform">
-            <FcGoogle size={22} /> {isLogin ? t("signInGoogle") : t("signUpGoogle")}
-          </button>
+            {!isLogin ? (
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <AiOutlineLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b69b7b]" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder={t("password")}
+                    className="w-full pl-10 py-2 rounded-xl border"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+                </div>
 
-          {infoMsg && <p className="text-blue-500 text-center mt-2">{infoMsg}</p>}
-          {successMsg && <p className="text-green-500 text-center mt-2">{successMsg}</p>}
-          {submitError && <p className="text-red-500 text-center mt-2">{submitError}</p>}
-        </form>
+                <div className="relative flex-1">
+                  <AiOutlineLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b69b7b]" />
+                  <input
+                    type={showConfirm ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder={t("confirmPassword")}
+                    className="w-full pl-10 py-2 rounded-xl border"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                  {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <AiOutlineLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b69b7b]" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder={t("password")}
+                  className="w-full pl-10 py-2 rounded-xl border"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+              </div>
+            )}
 
-        <div className="mt-6 flex justify-center gap-4 text-sm text-gray-500">
-          <button className={`font-semibold ${isLogin ? "underline text-light-primary" : "hover:text-light-primary"}`} onClick={() => setIsLogin(true)}>
-            {t("signIn")}
-          </button>
-          <span>|</span>
-          <button className={`font-semibold ${!isLogin ? "underline text-light-primary" : "hover:text-light-primary"}`} onClick={() => setIsLogin(false)}>
-            {t("signUp")}
-          </button>
+            {infoMsg && <p className="text-blue-500 text-center mt-2">{infoMsg}</p>}
+            {successMsg && <p className="text-green-500 text-center mt-2">{successMsg}</p>}
+            {submitError && <p className="text-red-500 text-center mt-2">{submitError}</p>}
+
+            {/* Submit */}
+            <button className="w-full py-3 bg-[#b87c4c] text-white rounded-xl font-semibold">
+              {isLogin ? t("signIn") : t("signUp")}
+            </button>
+
+            {/* Forget Password */}
+            {isLogin && (
+              <p
+                onClick={() => navigate("/forgot-password")}
+                className="text-center text-sm text-gray-500 cursor-pointer hover:text-[#b87c4c] transition mt-2"
+              >
+                {t("forgotPassword")}
+              </p>
+            )}
+
+            {/* Divider */}
+            <div className="flex items-center my-2">
+              <div className="flex-grow border-t" />
+              <span className="mx-2 text-sm text-gray-500">or</span>
+              <div className="flex-grow border-t" />
+            </div>
+
+            {/* Google */}
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-gray-100 transition"
+              >
+                <FcGoogle size={20} />
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { uploadImage } from "../sevices/storage_sevices";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
+import { X } from "lucide-react";
 
 export default function ProductForm({
   form,
@@ -9,6 +10,7 @@ export default function ProductForm({
   onSubmit,
   categories,
   loading,
+  onClose,
 }) {
   const { theme } = useTheme();
   const [errors, setErrors] = useState({});
@@ -71,6 +73,13 @@ export default function ProductForm({
     if (!form.description || form.description.trim().length < 10)
       newErrors.description = "Description min 10 characters";
 
+    if (
+      form.quantity === "" ||
+      isNaN(form.quantity) ||
+      Number(form.quantity) < 0
+    )
+      newErrors.quantity = "Quantity must be ≥ 0";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -89,6 +98,8 @@ export default function ProductForm({
     const finalData = {
       ...form,
       image: imageUrl,
+      quantity: Number(form.quantity),
+      stock: Number(form.quantity),
     };
 
     onSubmit(finalData);
@@ -106,18 +117,36 @@ export default function ProductForm({
 
   const formBg = theme === "light" ? "bg-light-surface" : "bg-dark-surface";
 
-  return (
+ return (
+  <div className="relative w-full max-w-3xl mx-auto">
+    {/* Close Button */}
+    {onClose && (
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 z-[999] p-2 rounded-full 
+        bg-white dark:bg-dark-surface
+        hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+      >
+        <X
+          size={20}
+          className={theme === "light" ? "text-black" : "text-white"}
+        />
+      </button>
+    )}
+
     <motion.form
       onSubmit={handleSubmit}
-      className={`${formBg} p-5 md:p-6 rounded-2xl shadow-lg w-full max-w-3xl mx-auto 
+      className={`${formBg} p-5 md:p-6 rounded-2xl shadow-lg w-full 
       transition-colors duration-300 
-      max-h-[80vh] overflow-y-auto scrollbar-hide `}   
+      max-h-[80vh] overflow-y-auto scrollbar-hide`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-    >
+    > 
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-        
         {/* Name */}
         <div>
           <label className="block mb-1 font-medium">Product Name</label>
@@ -145,10 +174,28 @@ export default function ProductForm({
             placeholder="Enter price"
             className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} 
             focus:outline-none focus:ring-2 focus:ring-primary`}
-            type="text"   
+            type="text"
           />
           {errors.price && (
             <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+          )}
+        </div>
+
+        {/* Quantity */}
+        <div>
+          <label className="block mb-1 font-medium">Quantity Available</label>
+          <input
+            name="quantity"
+            value={form.quantity || ""}
+            onChange={handleChange}
+            placeholder="Enter quantity"
+            type="number"
+            min="0"
+            className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} 
+            focus:outline-none focus:ring-2 focus:ring-primary`}
+          />
+          {errors.quantity && (
+            <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
           )}
         </div>
 
@@ -216,7 +263,7 @@ export default function ProductForm({
             placeholder="e.g. 15"
             className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} 
             focus:outline-none focus:ring-2 focus:ring-primary`}
-            type="text"  
+            type="text"
           />
           {errors.prepTime && (
             <p className="text-red-500 text-sm mt-1">{errors.prepTime}</p>
@@ -233,7 +280,7 @@ export default function ProductForm({
             placeholder="e.g. 4.5"
             className={`w-full p-2.5 md:p-3 rounded-lg border ${inputBg} 
             focus:outline-none focus:ring-2 focus:ring-primary`}
-            type="text"   // ← removed min/max/step
+            type="text"
           />
           {errors.rating && (
             <p className="text-red-500 text-sm mt-1">{errors.rating}</p>
@@ -271,6 +318,7 @@ export default function ProductForm({
           {uploadingImage || loading ? "Saving..." : "Save Product"}
         </motion.button>
       </div>
-    </motion.form>
+    </motion.form>  
+  </div>
   );
 }
