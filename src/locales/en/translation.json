@@ -1,7 +1,7 @@
 {
   "navbar": {
-    "home": "HOME",
-    "menu": "MENU",
+    "home": "Home",
+    "menu": "Menu",
     "myOrders": "My Orders",
     "tables": "Tables",
     "login": "Login",
@@ -29,8 +29,8 @@
     "registrationSuccess": "Registration successful!"
   },
   "home": {
-    "our": "OUR",
-    "menu": "MENU",
+    "our": "Our",
+    "menu": "Menu",
     "recommended": "Recommended for you"
   },
   "profile": {
@@ -48,7 +48,7 @@
     "removeFromCart": "Remove from Cart"
   },
   "ordersPage": {
-    "myOrders": "MY ORDERS",
+    "myOrders": "My Orders",
     "loading": "Loading...",
     "noOrders": "No orders yet.",
     "total": "Total Salary",
@@ -79,7 +79,7 @@
   "logout": "Logout"
   },
   "menuPage": {
-    "ourMenu": "OUR MENU"
+    "ourMenu": "Our Menu"
   },
   "userTables": {
     "selectYourTable": "Select Your Table",

@@ -18,6 +18,8 @@ import {
   getDocs,
   query,
   where,
+  updateDoc,
+  increment,
 } from "firebase/firestore";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
@@ -90,95 +92,110 @@ const CheckoutPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  
   const handlePlaceOrder = async () => {
     if (!validate()) return;
     if (form.payment === "paypal") {
-    // Redirect to PayPal page
-    return navigate("/paypal", {
-      state: {
-        amount: total,
-        currency: "USD",
-        description: "Order Payment",
-      },
-    });
-  }
+      return navigate("/paypal", {
+        state: {
+          amount: total,
+          currency: "USD",
+          description: "Order Payment",
+        },
+      });
+    }
     const user = auth.currentUser;
     if (!user) return alert("You must be logged in.");
 
-  try {
-    await addDoc(collection(db, "users", user.uid, "orders"), {
-      userId: user.uid,
-      customerName: form.name,
-      email: form.email,
-      phone: form.phone,
-      address: form.address,
-      payment: form.payment,
-      items,
-      total,
-      orderType: orderTypeLocal,
-      tableNumber: orderTypeLocal === "dineIn" ? tableNumber : "N/A",
-      status: "pending",
-      createdAt: new Date(),
-    });
+    try {
+      // حفظ الأوردر في الـ Firestore
+      await addDoc(collection(db, "users", user.uid, "orders"), {
+        userId: user.uid,
+        customerName: form.name,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        payment: form.payment,
+        items,
+        total,
+        orderType: orderTypeLocal,
+        tableNumber: orderTypeLocal === "dineIn" ? tableNumber : "N/A",
+        status: "pending",
+        createdAt: new Date(),
+      });
 
-    setSuccess("Order placed successfully!");
-    setTimeout(() => navigate("/orders"), 1500);
-
-    (async () => {
-      try {
-        await generateAnalytics();
-        await addNotification({
-          to: "admin",
-          from: user.uid,
-          type: "order",
-          title: "New Order Received",
-          body: `${form.name} placed a new order totaling ${total} EGP.`,
-          relatedId: user.uid,
+      // تحديث الـ stock لكل منتج
+      for (const item of items) {
+        const productRef = doc(db, "products", item.productId);
+        await updateDoc(productRef, {
+          stock: item.stock !== undefined 
+            ? Math.max(0, item.stock - item.quantity) 
+            : increment(-item.quantity),
         });
-
-        const cartSnapshot = await getDocs(
-          collection(db, "users", user.uid, "cart")
-        );
-        const deletePromises = cartSnapshot.docs.map((d) =>
-          deleteDoc(doc(db, "users", user.uid, "cart", d.id))
-        );
-        await Promise.all(deletePromises);
-      } catch (err) {
-        console.error("Background tasks failed:", err);
       }
-    })();
 
-  } catch (err) {
-    console.error(err);
-    setSuccess("Error placing order. Try again.");
-  }
-};
+      setSuccess("Order placed successfully!");
+      setTimeout(() => navigate("/orders"), 1500);
 
+      (async () => {
+        try {
+          await generateAnalytics();
+          await addNotification({
+            to: "admin",
+            from: user.uid,
+            type: "order",
+            title: "New Order Received",
+            body: `${form.name} placed a new order totaling ${total} EGP.`,
+            relatedId: user.uid,
+          });
 
+          const cartSnapshot = await getDocs(
+            collection(db, "users", user.uid, "cart")
+          );
+          const deletePromises = cartSnapshot.docs.map((d) =>
+            deleteDoc(doc(db, "users", user.uid, "cart", d.id))
+          );
+          await Promise.all(deletePromises);
+        } catch (err) {
+          console.error("Background tasks failed:", err);
+        }
+      })();
+    } catch (err) {
+      console.error(err);
+      setSuccess("Error placing order. Try again.");
+    }
+  };
+
+  // Theme-based classes
   const bgMain =
-    theme === "light" ? "bg-gray-100 text-gray-900" : "bg-[#0f0f0f] text-white";
+    theme === "light" ? "bg-light-background text-light-text" : "bg-dark-background text-white";
   const bgCard =
     theme === "light"
-      ? "bg-white text-gray-900 shadow-xl"
-      : "bg-[#151515] text-white shadow-lg border border-[#222]";
+      ? "bg-light-surface text-light-text shadow-xl"
+      : "bg-dark-surface text-white shadow-lg border border-dark-inputBorder";
   const inputBg =
     theme === "light"
-      ? "bg-gray-100 text-gray-900"
-      : "bg-[#1f1f1f] text-white placeholder-gray-300";
+      ? "bg-light-input text-light-text"
+      : "bg-dark-input text-white placeholder-gray-400";
   const buttonClass =
     theme === "dark"
-      ? "bg-dark-primary hover:bg-dark-primaryHover text-dark-text"
+      ? "bg-dark-primary hover:bg-dark-primaryHover text-white"
       : "bg-light-primary hover:bg-light-primaryHover text-white";
 
   return (
-    <div className={`pt-20 min-h-screen px-6 pb-16 ${bgMain}`}>
+    <div className={`pt-24 min-h-screen px-6 pb-16 ${bgMain}`}>
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-5xl font-extrabold mb-12 text-center text-dark-primary tracking-wide drop-shadow-lg"
+        className="text-4xl font-bold mb-12 text-center"
+        style={{
+          fontFamily: "'Playwrite CZ', cursive",
+          letterSpacing: "1px",
+        }}
       >
-        Checkout
+        <span className={theme === "light" ? "text-black" : "text-white"}>Checkout</span>{" "}
+        <span className={theme === "light" ? "text-light-primary" : "text-dark-primary"}>
+          Page
+        </span>
       </motion.h1>
 
       <motion.div
@@ -196,11 +213,11 @@ const CheckoutPage = () => {
           {/* Table Info */}
           <div className="flex justify-center mb-6">
             {orderTypeLocal === "dineIn" ? (
-              <p className="px-6 py-3 rounded-xl bg-green-600 text-white font-semibold text-lg shadow-md">
+              <p className="px-6 py-3 rounded-xl bg-green-500 text-white font-semibold text-lg shadow-md">
                 Table Number: {tableNumber}
               </p>
             ) : (
-              <p className="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-md">
+              <p className="px-6 py-3 rounded-xl bg-light-primary text-white font-semibold text-lg shadow-md">
                 Order Type: Take Away
               </p>
             )}
@@ -208,7 +225,7 @@ const CheckoutPage = () => {
 
           {/* Order Items */}
           <div>
-            <h2 className="text-3xl font-bold mb-6 text-dark-primary text-center lg:text-left">
+            <h2 className="text-3xl font-bold mb-6 text-light-primary text-center lg:text-left">
               Your Order
             </h2>
             <div className="flex flex-col gap-4 max-h-96 overflow-y-auto pr-2">
@@ -247,11 +264,11 @@ const CheckoutPage = () => {
 
           {/* Shipping Form */}
           <div>
-            <h2 className="text-3xl font-bold mb-6 text-dark-primary text-center lg:text-left">
+            <h2 className="text-3xl font-bold mb-6 text-light-primary text-center lg:text-left">
               Shipping Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
+              {[ 
                 { icon: <FaUser />, name: "name", placeholder: "Full Name" },
                 { icon: <FaEnvelope />, name: "email", placeholder: "Email" },
                 { icon: <FaPhone />, name: "phone", placeholder: "Phone Number" },
@@ -297,7 +314,7 @@ const CheckoutPage = () => {
           animate={{ opacity: 1, x: 0 }}
           className={`col-span-1 rounded-3xl p-6 flex flex-col gap-6 sticky top-24 ${bgCard} h-fit`}
         >
-          <h2 className="text-3xl font-bold text-center text-dark-primary">Order Summary</h2>
+          <h2 className="text-3xl font-bold text-center text-light-primary">Order Summary</h2>
           <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between opacity-90">
@@ -306,7 +323,7 @@ const CheckoutPage = () => {
               </div>
             ))}
           </div>
-          <div className="flex justify-between font-bold text-xl border-t pt-4 text-dark-primary">
+          <div className="flex justify-between font-bold text-xl border-t pt-4 text-light-primary">
             <span>Total</span>
             <span>{total} EGP</span>
           </div>

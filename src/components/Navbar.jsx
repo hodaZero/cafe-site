@@ -21,16 +21,18 @@ export default function Navbar() {
   const { theme } = useTheme();
   const [user, setUser] = useState(null);
 
+  // ✅ Notifications with safe defaults
+  const notificationsContext = useNotifications() || {};
   const {
     notifications = [],
     unreadCount = 0,
     markAsRead = () => {},
     deleteNotification = () => {},
     clearAll = () => {},
-  } = useNotifications() || {};
+  } = notificationsContext;
 
-  const favoritesCount = useSelector((state) => state.favorite.favorites?.length || 0);
-  const cartCount = useSelector((state) => state.cart.items?.length || 0);
+  const favoritesCount = useSelector((state) => state.favorite?.favorites?.length || 0);
+  const cartCount = useSelector((state) => state.cart?.items?.length || 0);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -54,7 +56,9 @@ export default function Navbar() {
     navigate("/auth");
   };
 
-  const headerClass = theme === "dark" ? "bg-dark-background/90 text-white shadow-md" : "bg-white text-black shadow";
+  const headerClass = theme === "dark" 
+    ? "bg-dark-background/90 text-white shadow-md" 
+    : "bg-[#FFF8F1] text-black shadow";
   const linkClass = theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary";
   const buttonClass = theme === "dark"
     ? "bg-dark-primary text-dark-text hover:bg-dark-primaryHover"
@@ -83,21 +87,17 @@ export default function Navbar() {
       <Link to="/" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
         {t("navbar.home")}
       </Link>
-
       <Link to="/menu" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
         {t("navbar.menu")}
       </Link>
-
       {isVerifiedUser && (
         <Link to="/orders" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
           {t("navbar.myOrders")}
         </Link>
       )}
-
       <Link to="/tables" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
         {t("navbar.tables")}
       </Link>
-
       {!isVerifiedUser ? (
         <Link
           to="/auth"
@@ -132,7 +132,6 @@ export default function Navbar() {
           </button>
         )}
       </div>
-
       {notifications.length === 0 ? (
         <p className="text-center py-3 opacity-70">{t("navbar.noNotifications")}</p>
       ) : (

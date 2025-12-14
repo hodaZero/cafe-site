@@ -1,110 +1,120 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../firebase/firebaseConfig";
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  addDoc,
+  updateDoc,
   doc,
-  serverTimestamp
+  deleteDoc,
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 
 const NotificationContext = createContext();
 
+export const useNotifications = () => useContext(NotificationContext);
+
 export const NotificationProvider = ({ children }) => {
-  const { user, role } = useAuth();
+  const { user, role } = useAuth(); // 👈 خدنا role
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const isAdmin = role === "admin";
-
+  // 🔔 Listen to notifications
   useEffect(() => {
-    if (!user && !isAdmin) return;
+    if (!user || !role) return;
 
-    const targetId = isAdmin ? "admin" : user?.uid;
-    if (!targetId) return;
+    let q;
 
-    const q = query(
-      collection(db, "notifications"),
-      where("to", "==", targetId),
-      orderBy("timestamp", "desc")
-    );
+    // ✅ ADMIN → يشوف إشعارات الأدمن بس
+    if (role === "admin") {
+      q = query(
+        collection(db, "notifications"),
+        where("to", "==", "admin")
+      );
+    }
+
+    // ✅ USER → يشوف إشعاراته هو بس
+    if (role === "user") {
+      q = query(
+        collection(db, "notifications"),
+        where("to", "==", user.uid)
+      );
+    }
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notifs = snapshot.docs.map(doc => ({
+      const notifData = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
-      setNotifications(notifs);
+
+      setNotifications(notifData);
+      setUnreadCount(notifData.filter((n) => !n.read).length);
     });
 
     return () => unsubscribe();
-  }, [user, isAdmin]);
+  }, [user, role]);
 
-  const addNotification = async ({ to, from, type, title, body, relatedId }) => {
-    await addDoc(collection(db, "notifications"), {
-      to,
-      from: from || null,
-      type,
-      title,
-      body,
-      relatedId: relatedId || null,
-      read: false,
-      timestamp: serverTimestamp(),
-    });
+  // ➕ Add notification
+  const addNotification = async (notif) => {
+    try {
+      await addDoc(collection(db, "notifications"), {
+        ...notif,
+        read: false,
+        createdAt: new Date(),
+      });
+    } catch (err) {
+      console.error("Error adding notification:", err);
+    }
   };
 
+  // ✅ Mark as read
   const markAsRead = async (id) => {
-    const notifRef = doc(db, "notifications", id);
-    await updateDoc(notifRef, { read: true });
+    try {
+      await updateDoc(doc(db, "notifications", id), { read: true });
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+    }
   };
 
+  // ❌ Delete notification
   const deleteNotification = async (id) => {
-    const notifRef = doc(db, "notifications", id);
-    await deleteDoc(notifRef);
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+    } catch (err) {
+      console.error("Error deleting notification:", err);
+    }
   };
 
+  // 🧹 Clear all (حسب الدور)
   const clearAll = async () => {
-    const promises = notifications.map(n =>
-      deleteDoc(doc(db, "notifications", n.id))
-    );
-    await Promise.all(promises);
-    setNotifications([]);
-  };
+    try {
+      const filtered =
+        role === "admin"
+          ? notifications.filter((n) => n.to === "admin")
+          : notifications.filter((n) => n.to === user.uid);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+      for (const n of filtered) {
+        await deleteDoc(doc(db, "notifications", n.id));
+      }
+    } catch (err) {
+      console.error("Error clearing notifications:", err);
+    }
+  };
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
+        unreadCount,
         addNotification,
         markAsRead,
         deleteNotification,
         clearAll,
-        unreadCount,
       }}
     >
       {children}
     </NotificationContext.Provider>
   );
 };
-
-export const useNotifications = () => useContext(NotificationContext);
-
-
-
-
-
-
-
-
-
-
-
-

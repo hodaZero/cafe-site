@@ -10,7 +10,7 @@ import {
   XCircle,
   Trash2,
   FileText,
-  DollarSign
+  DollarSign,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import Pagination from "../components/Pagination";
@@ -24,7 +24,7 @@ import {
   doc,
   query,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
 } from "firebase/firestore";
 import { useNotifications } from "../context/NotificationContext";
 
@@ -42,16 +42,16 @@ export default function AdminOrders() {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
 
-
-  // Pagination state
+  /* Pagination state */
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-
+  /* ================= FETCH ORDERS ================= */
   const fetchOrders = async () => {
-    let allOrders = [];
     const usersRef = collection(db, "users");
     const usersSnap = await getDocs(usersRef);
+
+    const allOrders = [];
 
     for (let userDoc of usersSnap.docs) {
       const userId = userDoc.id;
@@ -72,11 +72,15 @@ export default function AdminOrders() {
           orderType: data.orderType || "takeAway",
           tableNumber: data.tableNumber || "N/A",
           createdAt: data.createdAt,
-          category: data.category || "All"
+          category: data.category || "All",
         });
       });
     }
-    allOrders.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+
+    allOrders.sort(
+      (a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis()
+    );
+
     setOrders(allOrders);
   };
 
@@ -84,83 +88,31 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (order, newStatus) => {
-    const ref = doc(db, "users", order.userId, "orders", order.id);
-    await updateDoc(ref, { status: newStatus });
-
-    setOrders((prev) =>
-      prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
-    );
-    let title = "";
-    let body = "";
-    if (newStatus === "completed") {
-      title = "Your order is completed";
-      body = `Your order #${order.id} has been completed successfully.`;
-    } else if (newStatus === "rejected") {
-      title = "Your order has been rejected";
-      body = `Your order #${order.id} was rejected.`;
-    } else if (newStatus === "delivered") {
-      title = "Your order has been delivered";
-      body = `Your order #${order.id} has been delivered successfully.`;
-    }
-
-    await addNotification({
-      to: order.userId,
-      from: "admin",
-      type: "order_status",
-      title,
-      body,
-      relatedId: order.id,
-      timestamp: serverTimestamp(),
-    });
-  };
-  const handleDeleteOrder = async () => {
-    if (!orderToDelete) return;
-    const actualUserId = orderToDelete.userId.split("/")[0];
-    const ref = doc(db, "users", actualUserId, "orders", orderToDelete.id);
-    await deleteDoc(ref);
-
-    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
-    setOrderToDelete(null);
-    setShowModal(false);
-  };
-
-  const handleClearFinished = async () => {
-    const finishedOrders = orders.filter(
-      (order) =>
-        order.status === "completed" ||
-        order.status === "rejected"
-    );
-
-    for (let order of finishedOrders) {
-      const ref = doc(db, "users", order.userId, "orders", order.id);
-      await deleteDoc(ref);
-    }
-
-    setOrders((prev) =>
-      prev.filter(
-        (order) => order.status !== "completed" && order.status !== "rejected"
-      )
-    );
-
-    setCurrentPage(1);
-    setShowClearModal(false);
-  };
-
+  /* ================= FILTER ================= */
   const filteredOrders = useMemo(() => {
-    return orders
-      .filter(
-        (order) =>
-          (category === "All" || order.category === category) &&
-          (statusFilter === "All" || order.status === statusFilter) &&
-          (order.customerName.toLowerCase().includes(search.toLowerCase()) ||
-            order.items.some((it) =>
-              it.name.toLowerCase().includes(search.toLowerCase())
-            ))
-      )
-      .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+    const filtered = orders.filter((order) => {
+      const matchesCategory = category === "All" || order.category === category;
+      const matchesStatus = statusFilter === "All" || order.status === statusFilter;
+      const matchesSearch =
+        order.customerName.toLowerCase().includes(search.toLowerCase()) ||
+        order.items.some((it) =>
+          it.name.toLowerCase().includes(search.toLowerCase())
+        );
+      return matchesCategory && matchesStatus && matchesSearch;
+    });
+
+    filtered.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+    setCurrentPage(1); // reset page when filters/search change
+    return filtered;
   }, [orders, search, statusFilter, category]);
 
+  /* ================= PAGINATION ================= */
+  const pagesCount = Math.ceil(filteredOrders.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
+
+  /* ================= HELPERS ================= */
   const totalOrders = orders.length;
   const totalRevenue = orders
     .filter((o) => o.status === "completed")
@@ -168,11 +120,57 @@ export default function AdminOrders() {
 
   const getInitial = (name) => name?.charAt(0)?.toUpperCase() || "?";
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
+  /* ================= ACTIONS ================= */
+  const handleStatusChange = async (order, newStatus) => {
+    try {
+      const ref = doc(db, "users", order.userId, "orders", order.id);
+      await updateDoc(ref, { status: newStatus });
 
+      // Update local state instantly
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
+      );
+
+      await addNotification({
+        to: order.userId,
+        from: "admin",
+        type: "order_status",
+        title: "Order Update",
+        body: `Your order #${order.id} status changed to ${newStatus}`,
+        relatedId: order.id,
+        timestamp: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error("Failed to update order status:", err);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    const ref = doc(db, "users", orderToDelete.userId, "orders", orderToDelete.id);
+    await deleteDoc(ref);
+    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+    setShowModal(false);
+  };
+
+  const handleClearFinished = async () => {
+    const finished = orders.filter(
+      (o) => o.status === "completed" || o.status === "rejected"
+    );
+
+    for (let order of finished) {
+      const ref = doc(db, "users", order.userId, "orders", order.id);
+      await deleteDoc(ref);
+    }
+
+    setOrders((prev) =>
+      prev.filter((o) => o.status !== "completed" && o.status !== "rejected")
+    );
+    setCurrentPage(1);
+    setShowClearModal(false);
+  };
+
+  /* ================= JSX ================= */
   return (
     <div className={`pt-16 min-h-screen p-6 font-sans ${theme === "dark" ? "bg-dark-background text-white" : "bg-light-background text-black"}`}>
       {/* Top Summary Cards */}
@@ -264,9 +262,12 @@ export default function AdminOrders() {
         {currentOrders.map((order) => {
           const isOpen = activeTab === order.id;
 
-          const statusOptions = order.tableNumber !== "N/A"
-            ? ["pending", "completed", "rejected"]
-            : ["pending", "delivered", "completed", "rejected"];
+          // Logic: Takeaway → Pending → Delivered → Completed
+          // Table → Pending → Completed
+          const statusOptions =
+            order.tableNumber === "N/A"
+              ? ["pending", "delivered", "completed", "rejected"]
+              : ["pending", "completed", "rejected"];
 
           return (
             <div
@@ -312,80 +313,62 @@ export default function AdminOrders() {
               </div>
 
               {/* Details + Status Buttons */}
-<div className="flex items-center justify-between gap-3 mt-2">
-  <button
-    onClick={() => setActiveTab(isOpen ? null : order.id)}
-    className={`flex-1 py-2 px-3 rounded-md font-semibold transition
-      ${isOpen
-        ? "bg-light-primary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-primary"
-        : "bg-light-surface dark:bg-dark-surface border border-light-inputBorder dark:border-dark-inputBorder text-light-primary dark:text-dark-primary"
-      }`}
-  >
-    {isOpen ? "Hide Details" : "Details"}
-  </button>
-<div className="ml-2 flex items-center gap-2">
-  {order.tableNumber === "N/A" ? (
-    <>
-      {order.status === "pending" && (
-        <>
-          <button
-            onClick={() => handleStatusChange(order, "delivered")}
-            className="p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
-          >
-            <CheckCircle size={18} className="text-blue-600"/>
-          </button>
-          <button
-            onClick={() => handleStatusChange(order, "rejected")}
-            className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <XCircle size={18} className="text-red-600"/>
-          </button>
-        </>
-      )}
-      {order.status === "delivered" && (
-        <button
-          onClick={() => handleStatusChange(order, "completed")}
-          className="p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20"
-        >
-          <CheckCircle size={18} className="text-green-600"/>
-        </button>
-      )}
-      {order.status === "completed" && (
-        <span className="text-green-600 font-semibold">Completed</span>
-      )}
-      {order.status === "rejected" && (
-        <span className="text-red-600 font-semibold">Rejected</span>
-      )}
-    </>
-  ) : (
-      // Normal Table Flow: Pending -> Completed/Rejected
-      <>
-        {order.status === "pending" && (
-          <>
-            <button
-              onClick={() => handleStatusChange(order, "completed")}
-              className="p-2 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20"
-            >
-              <CheckCircle size={18} className="text-green-600"/>
-            </button>
-            <button
-              onClick={() => handleStatusChange(order, "rejected")}
-              className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
-            >
-              <XCircle size={18} className="text-red-600"/>
-            </button>
-          </>
-        )}
-        {order.status === "completed" && (
-          <span className="text-green-600 font-semibold">Completed</span>
-        )}
-        {order.status === "rejected" && (
-          <span className="text-red-600 font-semibold">Rejected</span>
-        )}
-      </>
-    )}
-  </div>
-</div>
+              <div className="flex items-center justify-between gap-3 mt-2">
+                <button
+                  onClick={() => setActiveTab(isOpen ? null : order.id)}
+                  className={`flex-1 py-2 px-3 rounded-md font-semibold transition
+                    ${isOpen
+                      ? "bg-light-primary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-primary"
+                      : "bg-light-surface dark:bg-dark-surface border border-light-inputBorder dark:border-dark-inputBorder text-light-primary dark:text-dark-primary"
+                    }`}
+                >
+                  {isOpen ? "Hide Details" : "Details"}
+                </button>
+                <div className="ml-2 flex items-center gap-2">
+                  {/* Dynamic status buttons */}
+                  {order.status === "pending" && order.tableNumber === "N/A" && (
+                    <>
+                      <CheckCircle
+                        size={18}
+                        className="text-blue-600 cursor-pointer"
+                        onClick={() => handleStatusChange(order, "delivered")}
+                      />
+                      <XCircle
+                        size={18}
+                        className="text-red-600 cursor-pointer"
+                        onClick={() => handleStatusChange(order, "rejected")}
+                      />
+                    </>
+                  )}
+                  {order.status === "delivered" && order.tableNumber === "N/A" && (
+                    <CheckCircle
+                      size={18}
+                      className="text-green-600 cursor-pointer"
+                      onClick={() => handleStatusChange(order, "completed")}
+                    />
+                  )}
+                  {order.status === "pending" && order.tableNumber !== "N/A" && (
+                    <>
+                      <CheckCircle
+                        size={18}
+                        className="text-green-600 cursor-pointer"
+                        onClick={() => handleStatusChange(order, "completed")}
+                      />
+                      <XCircle
+                        size={18}
+                        className="text-red-600 cursor-pointer"
+                        onClick={() => handleStatusChange(order, "rejected")}
+                      />
+                    </>
+                  )}
+                  {order.status === "completed" && (
+                    <span className="text-green-600 font-semibold">Completed</span>
+                  )}
+                  {order.status === "rejected" && (
+                    <span className="text-red-600 font-semibold">Rejected</span>
+                  )}
+                </div>
+              </div>
 
               {/* Animated Details */}
               <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[1500px] opacity-100" : "max-h-0 opacity-0"}`}>
@@ -405,30 +388,10 @@ export default function AdminOrders() {
                       </div>
                     </div>
                   ))}
-
                   <hr className="border-light-inputBorder dark:border-dark-inputBorder my-2"/>
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-sm font-bold">Total</p>
                     <p className="text-sm font-bold text-light-primary dark:text-dark-primary">{order.total} EGP</p>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 mt-3">
-                    <div className="flex items-center gap-2">
-                      {statusOptions.includes("delivered") && order.status === "pending" && order.tableNumber === "N/A" && (
-                        <button onClick={() => handleStatusChange(order, "delivered")} className="px-3 py-1 rounded-md text-sm bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-                          Mark Delivered
-                        </button>
-                      )}
-                      <button onClick={() => handleStatusChange(order, "completed")} className="px-3 py-1 rounded-md text-sm bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
-                        Mark Completed
-                      </button>
-                      <button onClick={() => handleStatusChange(order, "rejected")} className="px-3 py-1 rounded-md text-sm bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                        Reject
-                      </button>
-                    </div>
-                    <button onClick={() => { setOrderToDelete(order); setShowModal(true); }} className="px-3 py-1 rounded-md text-sm bg-light-input dark:bg-dark-input border border-light-inputBorder dark:border-dark-inputBorder">
-                      Delete
-                    </button>
                   </div>
                 </div>
               </div>
@@ -437,27 +400,28 @@ export default function AdminOrders() {
         })}
       </div>
 
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={pagesCount}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
-  {/* Pagination */}
-  {filteredOrders.length > itemsPerPage && (
-    <Pagination
-      currentPage={currentPage}
-      totalPages={totalPages}
-      onPageChange={(page) => setCurrentPage(page)}
-    />
-  )}
-
-      {/* Delete Modal */}
+      {/* Delete & Clear Modals */}
       {showModal && orderToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowModal(false); setOrderToDelete(null); }} />
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => { setShowModal(false); setOrderToDelete(null); }}
+          />
           <div className="relative z-60 max-w-md w-full p-6 rounded-2xl shadow-2xl bg-light-surface dark:bg-dark-surface border-t-4 border-light-primary dark:border-dark-primary">
             <div className="flex items-start gap-3">
               <div className="w-12 h-12 rounded-md flex items-center justify-center text-white font-bold bg-light-primary dark:bg-dark-primary">!</div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Delete Order</h3>
-                <p className="text-sm opacity-70">Are you sure you want to delete the
-order for <span className="font-semibold">{orderToDelete.customerName}</span>? This action cannot be undone.</p>
+                <p className="text-sm opacity-70">
+                Are you sure you want to delete the order for <span className="font-semibold">{orderToDelete.customerName}</span>? This action cannot be undone.
+                </p>
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
@@ -478,7 +442,6 @@ order for <span className="font-semibold">{orderToDelete.customerName}</span>? T
         </div>
       )}
 
-      {/* Clear Finished Modal */}
       {showClearModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -509,7 +472,6 @@ order for <span className="font-semibold">{orderToDelete.customerName}</span>? T
           </div>
         </div>
       )}
-
     </div>
   );
 }
