@@ -66,14 +66,20 @@ export default function Navbar() {
   const iconClass = theme === "dark" ? "text-white hover:text-primary" : "text-black hover:text-primary";
   const avatarBorder = theme === "dark" ? "border-dark-primary" : "border-light-primary";
 
-  const IconButton = ({ Icon, count, onClick, className = "" }) => (
-    <button onClick={onClick} className={`relative flex items-center transition-colors duration-300 ${iconClass} ${className}`}>
-      <Icon size={24} />
-      {count > 0 && (
-        <span className="absolute -top-1 -right-1 rounded-full w-5 h-5 flex items-center justify-center bg-light-primary text-black dark:bg-dark-primary dark:text-dark-text text-xs">
-          {count}
-        </span>
-      )}
+  const IconButton = ({ Icon, count, onClick, className = "", label = "" }) => (
+    <button 
+      onClick={onClick} 
+      className={`relative flex flex-col items-center transition-colors duration-300 ${iconClass} ${className}`}
+    >
+      <div className="relative">
+        <Icon size={24} />
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 rounded-full w-5 h-5 flex items-center justify-center bg-light-primary text-black dark:bg-dark-primary dark:text-dark-text text-xs">
+            {count}
+          </span>
+        )}
+      </div>
+      {label && <span className="text-xs mt-1">{label}</span>}
     </button>
   );
 
@@ -84,25 +90,25 @@ export default function Navbar() {
 
   const renderLinks = () => (
     <>
-      <Link to="/" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
+      <Link to="/" className={`transition-colors duration-300 px-3 py-2 ${linkClass}`} onClick={() => setOpen(false)}>
         {t("navbar.home")}
       </Link>
-      <Link to="/menu" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
+      <Link to="/menu" className={`transition-colors duration-300 px-3 py-2 ${linkClass}`} onClick={() => setOpen(false)}>
         {t("navbar.menu")}
       </Link>
       {isVerifiedUser && (
-        <Link to="/orders" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
+        <Link to="/orders" className={`transition-colors duration-300 px-3 py-2 ${linkClass}`} onClick={() => setOpen(false)}>
           {t("navbar.myOrders")}
         </Link>
       )}
-      <Link to="/tables" className={`transition-colors duration-300 px-3 py-1 ${linkClass}`} onClick={() => setOpen(false)}>
+      <Link to="/tables" className={`transition-colors duration-300 px-3 py-2 ${linkClass}`} onClick={() => setOpen(false)}>
         {t("navbar.tables")}
       </Link>
       {!isVerifiedUser ? (
         <Link
           to="/auth"
           onClick={() => setOpen(false)}
-          className={`px-4 py-1 rounded-md transition ${
+          className={`px-4 py-2 rounded-md transition mt-2 ${
             theme === "dark"
               ? "bg-dark-surface text-white hover:bg-dark-primary/20"
               : "bg-light-surface text-black hover:bg-light-primary/20"
@@ -111,7 +117,7 @@ export default function Navbar() {
           {t("navbar.login")}
         </Link>
       ) : (
-        <button onClick={handleLogout} className={`px-4 py-1 rounded-md transition ${buttonClass}`}>
+        <button onClick={handleLogout} className={`px-4 py-2 rounded-md transition mt-2 ${buttonClass}`}>
           {t("navbar.logout")}
         </button>
       )}
@@ -162,23 +168,34 @@ export default function Navbar() {
     </div>
   );
 
-  const renderIcons = () => (
-    <div className="flex items-center gap-4">
-      {isVerifiedUser && <IconButton Icon={Heart} count={favoritesCount} onClick={() => navigate("/favorites")} />}
-      {isVerifiedUser && <IconButton Icon={ShoppingCart} count={cartCount} onClick={() => navigate("/cart")} />}
+  // ✅ دالة واحدة لرسم الأيقونات في شريط التنقل (للشاشات الكبيرة فقط)
+  const renderDesktopIcons = () => (
+    <div className="hidden md:flex items-center gap-4">
       {isVerifiedUser && (
-        <div className="relative">
-          <IconButton
-            Icon={Bell}
-            count={unreadCount}
-            onClick={(e) => {
-              e.stopPropagation();
-              setNotifOpen((prev) => !prev);
-            }}
-            className="notification-button"
+        <>
+          <IconButton 
+            Icon={Heart} 
+            count={favoritesCount} 
+            onClick={() => navigate("/favorites")} 
           />
-          {notifOpen && <NotificationPopup />}
-        </div>
+          <IconButton 
+            Icon={ShoppingCart} 
+            count={cartCount} 
+            onClick={() => navigate("/cart")} 
+          />
+          <div className="relative">
+            <IconButton
+              Icon={Bell}
+              count={unreadCount}
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotifOpen((prev) => !prev);
+              }}
+              className="notification-button"
+            />
+            {notifOpen && <NotificationPopup />}
+          </div>
+        </>
       )}
       <ThemeToggle />
       <div className="flex items-center gap-2">
@@ -199,6 +216,101 @@ export default function Navbar() {
         </button>
       )}
     </div>
+  );
+
+  // ✅ الأيقونات في القائمة المنسدلة للهواتف فقط
+  const MobileMenuIcons = () => (
+    isVerifiedUser && (
+      <>
+        {/* ✅ قسم الأيقونات السريعة */}
+        <div className="grid grid-cols-3 gap-4 py-4 border-t dark:border-gray-700">
+          <IconButton 
+            Icon={Heart} 
+            count={favoritesCount} 
+            onClick={() => {
+              navigate("/favorites");
+              setOpen(false);
+            }}
+            label={t("navbar.favorites")}
+          />
+          
+          <IconButton 
+            Icon={ShoppingCart} 
+            count={cartCount} 
+            onClick={() => {
+              navigate("/cart");
+              setOpen(false);
+            }}
+            label={t("navbar.cart")}
+          />
+          
+          <button 
+            onClick={() => {
+              navigate("/profile");
+              setOpen(false);
+            }}
+            className="flex flex-col items-center gap-1"
+          >
+            <img
+              src={user.photoURL || "https://i.pravatar.cc/100"}
+              alt={t("profile")}
+              className={`h-12 w-12 rounded-full object-cover border-2 ${avatarBorder}`}
+            />
+            <span className="text-xs mt-1">{t("navbar.profile")}</span>
+          </button>
+        </div>
+        
+        {/* ✅ قسم الإشعارات */}
+        <div className="mt-3 border-t pt-3 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Bell size={20} />
+              <h3 className="font-semibold">{t("navbar.notifications")}</h3>
+              {unreadCount > 0 && (
+                <span className="rounded-full w-5 h-5 flex items-center justify-center bg-light-primary text-black dark:bg-dark-primary dark:text-dark-text text-xs">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            {notifications.length > 0 && (
+              <button onClick={clearAll} className="text-sm text-red-500 hover:underline">
+                {t("navbar.clearAll")}
+              </button>
+            )}
+          </div>
+          {notifications.length === 0 ? (
+            <p className="text-center py-2 opacity-70">{t("navbar.noNotifications")}</p>
+          ) : (
+            <div className="max-h-40 overflow-y-auto pr-1">
+              {notifications.slice(0, 3).map((n) => (
+                <div
+                  key={n.id}
+                  className={`p-2 mb-2 rounded cursor-pointer transition ${!n.read ? "bg-light-primary/20 dark:bg-dark-primary/20" : ""}`}
+                  onClick={() => {
+                    markAsRead(n.id);
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex justify-between items-start">
+                    <p className="font-semibold text-sm">{n.title}</p>
+                    <button
+                      className="text-xs text-red-500 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotification(n.id);
+                      }}
+                    >
+                      {t("navbar.delete")}
+                    </button>
+                  </div>
+                  <p className="text-xs opacity-90">{n.body}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+    )
   );
 
   return (
@@ -227,30 +339,73 @@ export default function Navbar() {
           </motion.span>
         </Link>
 
+        {/* ✅ الروابط للشاشات الكبيرة */}
         <nav className="hidden md:flex gap-4 items-center">{renderLinks()}</nav>
-        <div className="hidden md:flex items-center gap-4">{renderIcons()}</div>
+        
+        {/* ✅ الأيقونات للشاشات الكبيرة فقط */}
+        {renderDesktopIcons()}
 
-        <div className="md:hidden flex items-center gap-2">
-          <ThemeToggle />
-          <button onClick={() => setOpen(!open)} className="p-2">
+        {/* ✅ زر القائمة للهواتف - بدون أي أيقونات أخرى */}
+        <div className="md:hidden">
+          <button 
+            onClick={() => setOpen(!open)} 
+            className="p-2 flex items-center gap-2"
+          >
+            <span className="text-sm font-medium">{open ? "Close" : "Menu"}</span>
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
+      {/* ✅ القائمة المنسدلة للهواتف */}
       {open && (
         <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}>
-          <div className="flex flex-col gap-2 py-2 px-4">
+          <div className="flex flex-col gap-2 py-4 px-4">
+            {/* ✅ الروابط */}
             {renderLinks()}
-            <div className="flex items-center gap-2 mt-2">
-              <ThemeToggle />
-              <button
-                onClick={toggleLanguage}
-                className="px-2 py-1 rounded-md border hover:bg-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                {i18n.language === "en" ? "عربي" : "EN"}
-              </button>
+            
+            {/* ✅ قسم الإعدادات */}
+            <div className="mt-4 border-t pt-4 dark:border-gray-700">
+              <p className="font-semibold mb-3">{t("navbar.settings")}</p>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{t("navbar.theme")}:</span>
+                  <ThemeToggle />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{t("navbar.language")}:</span>
+                  <button
+                    onClick={toggleLanguage}
+                    className="px-3 py-1 rounded-md border hover:bg-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+                  >
+                    {i18n.language === "en" ? "العربية" : "English"}
+                  </button>
+                </div>
+              </div>
             </div>
+            
+            {/* ✅ الأيقونات (تظهر مرة واحدة فقط هنا) */}
+            <MobileMenuIcons />
+            
+            {/* ✅ معلومات المستخدم */}
+            {isVerifiedUser && (
+              <div className="mt-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={user.photoURL || "https://i.pravatar.cc/100"}
+                    alt={t("profile")}
+                    className={`h-12 w-12 rounded-full object-cover border-2 ${avatarBorder}`}
+                  />
+                  <div className="text-left">
+                    <p className="font-semibold">{user.displayName || t("profile")}</p>
+                    <p className="text-sm opacity-70">{user.email}</p>
+                    <p className="text-xs mt-1 text-green-600 dark:text-green-400">
+                      ✓ {t("navbar.verifiedAccount")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
