@@ -312,103 +312,168 @@ export default function Navbar() {
       </>
     )
   );
+return (
+  <header className={`fixed w-full z-50 transition-colors duration-300 ${headerClass}`}>
+    <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      {/* Logo */}
+      <Link to="/" className="flex items-center gap-3">
+        <motion.img
+          src={logo}
+          alt="logo"
+          className="h-12 w-12 rounded-xl shadow-md"
+          initial={{ scale: 0, rotate: -20, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          whileHover={{ scale: 1.1, rotate: 3 }}
+        />
+        <motion.span
+          className="text-3xl font-bold"
+          style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px" }}
+          initial={{ x: -15, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+          whileHover={{ scale: 1.05 }}
+        >
+          <motion.span className="text-light-primary"> H</motion.span>
+          oax <motion.span className="text-light-primary">C</motion.span>afe
+        </motion.span>
+      </Link>
 
-  return (
-    <header className={`fixed w-full z-50 transition-colors duration-300 ${headerClass}`}>
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
-          <motion.img
-            src={logo}
-            alt="logo"
-            className="h-12 w-12 rounded-xl shadow-md"
-            initial={{ scale: 0, rotate: -20, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            whileHover={{ scale: 1.1, rotate: 3 }}
-          />
-          <motion.span
-            className="text-3xl font-bold"
-            style={{ fontFamily: "'Playwrite CZ', cursive", letterSpacing: "1px" }}
-            initial={{ x: -15, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <motion.span className="text-light-primary"> D</motion.span>
-            omi <motion.span className="text-light-primary">C</motion.span>afe
-          </motion.span>
-        </Link>
+      {/* Desktop Nav */}
+      <nav className="hidden md:flex gap-4 items-center">
+        {renderLinks()}
+      </nav>
 
-        {/* ✅ الروابط للشاشات الكبيرة */}
-        <nav className="hidden md:flex gap-4 items-center">{renderLinks()}</nav>
-        
-        {/* ✅ الأيقونات للشاشات الكبيرة فقط */}
-        {renderDesktopIcons()}
+      {/* Desktop Icons */}
+      {renderDesktopIcons()}
 
-        {/* ✅ زر القائمة للهواتف - بدون أي أيقونات أخرى */}
-        <div className="md:hidden">
-          <button 
-            onClick={() => setOpen(!open)} 
-            className="p-2 flex items-center gap-2"
-          >
-            <span className="text-sm font-medium">{open ? "Close" : "Menu"}</span>
-            {open ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </div>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="md:hidden p-2"
+      >
+        <Menu size={26} />
+      </button>
+    </div>
 
-      {/* ✅ القائمة المنسدلة للهواتف */}
-      {open && (
-        <div className={`md:hidden transition-colors duration-300 ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}>
-          <div className="flex flex-col gap-2 py-4 px-4">
-            {/* ✅ الروابط */}
-            {renderLinks()}
-            
-            {/* ✅ قسم الإعدادات */}
-            <div className="mt-4 border-t pt-4 dark:border-gray-700">
-              <p className="font-semibold mb-3">{t("navbar.settings")}</p>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{t("navbar.theme")}:</span>
-                  <ThemeToggle />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{t("navbar.language")}:</span>
-                  <button
-                    onClick={toggleLanguage}
-                    className="px-3 py-1 rounded-md border hover:bg-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
-                  >
-                    {i18n.language === "en" ? "العربية" : "English"}
-                  </button>
-                </div>
-              </div>
+    {/* ================= MOBILE SIDE DRAWER ================= */}
+    {open && (
+      <>
+        {/* Overlay */}
+        <div
+          className="fixed inset-0 bg-black/40 z-40"
+          onClick={() => setOpen(false)}
+        />
+
+        {/* Drawer */}
+        <div
+          className={`fixed top-0 right-0 h-full w-72 z-50 transition-transform duration-300
+          ${theme === "dark" ? "bg-dark-background text-white" : "bg-white text-black"}`}
+        >
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+            <span className="font-semibold text-lg">{t("navbar.menu")}</span>
+            <div className="flex items-center gap-2">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+              {/* Close Button */}
+              <button onClick={() => setOpen(false)}>
+                <X size={24} />
+              </button>
             </div>
-            
-            {/* ✅ الأيقونات (تظهر مرة واحدة فقط هنا) */}
-            <MobileMenuIcons />
-            
-            {/* ✅ معلومات المستخدم */}
+          </div>
+
+          {/* Language Full Width - Outline Button */}
+          <div className="w-full px-4 py-2 border-b dark:border-gray-700">
+            <button
+              onClick={toggleLanguage}
+              className={`w-full py-2 rounded-md text-center border ${
+                theme === "dark"
+                  ? "border-dark-primary text-dark-text hover:bg-dark-primaryHover hover:text-white"
+                  : "border-light-primary text-black hover:bg-light-primaryHover hover:text-white"
+              }`}
+            >
+              {i18n.language === "en" ? "العربية" : "English"}
+            </button>
+          </div>
+
+          {/* Icons Only */}
+          {isVerifiedUser && (
+            <div className="flex justify-around py-6 border-b dark:border-gray-700">
+              <button
+                onClick={() => {
+                  navigate("/favorites");
+                  setOpen(false);
+                }}
+              >
+                <Heart size={26} />
+              </button>
+
+              <button
+                onClick={() => {
+                  navigate("/cart");
+                  setOpen(false);
+                }}
+              >
+                <ShoppingCart size={26} />
+              </button>
+
+              <button
+                onClick={() => {
+                  navigate("/profile");
+                  setOpen(false);
+                }}
+              >
+                <img
+                  src={user.photoURL || "https://i.pravatar.cc/100"}
+                  alt="profile"
+                  className={`h-10 w-10 rounded-full object-cover border-2 ${avatarBorder}`}
+                />
+              </button>
+            </div>
+          )}
+
+          {/* Links */}
+          <nav className="flex flex-col gap-3 p-4">
+            <Link to="/" onClick={() => setOpen(false)}>{t("navbar.home")}</Link>
+            <Link to="/menu" onClick={() => setOpen(false)}>{t("navbar.menu")}</Link>
             {isVerifiedUser && (
-              <div className="mt-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={user.photoURL || "https://i.pravatar.cc/100"}
-                    alt={t("profile")}
-                    className={`h-12 w-12 rounded-full object-cover border-2 ${avatarBorder}`}
-                  />
-                  <div className="text-left">
-                    <p className="font-semibold">{user.displayName || t("profile")}</p>
-                    <p className="text-sm opacity-70">{user.email}</p>
-                    <p className="text-xs mt-1 text-green-600 dark:text-green-400">
-                      ✓ {t("navbar.verifiedAccount")}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Link to="/orders" onClick={() => setOpen(false)}>{t("navbar.myOrders")}</Link>
+            )}
+            <Link to="/tables" onClick={() => setOpen(false)}>{t("navbar.tables")}</Link>
+          </nav>
+
+          {/* Bottom Actions */}
+          <div className="absolute bottom-0 w-full p-4 border-t dark:border-gray-700">
+            {!isVerifiedUser ? (
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
+                className="block text-center py-2 rounded-md bg-light-primary text-white"
+              >
+                {t("navbar.login")}
+              </Link>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="w-full py-2 rounded-md bg-red-500 text-white"
+              >
+                {t("navbar.logout")}
+              </button>
             )}
           </div>
         </div>
-      )}
-    </header>
-  );
-}
+      </>
+    )}
+
+    {/* ✅ Close drawer automatically if screen resizes to desktop */}
+    {useEffect(() => {
+      const handleResize = () => {
+        if (window.innerWidth >= 768) setOpen(false);
+      };
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, [])}
+  </header>
+);
+   }

@@ -6,6 +6,8 @@ import { toggleFavorite } from "../redux/favoriteSlice";
 import { toggleCartItem } from "../redux/cartSlice";
 import { useTheme } from "../context/ThemeContext";
 import { auth } from "../firebase/firebaseConfig";
+import { removeFromCartFirebase } from "../redux/cartSlice";
+
 
 const ProductCard = ({ product, adminView = false }) => {
   const navigate = useNavigate();
@@ -30,7 +32,9 @@ const ProductCard = ({ product, adminView = false }) => {
 
   useEffect(() => {
     if (cartItem) {
-      setQuantity(cartItem.quantity > initialStock ? initialStock : cartItem.quantity);
+      setQuantity(
+        cartItem.quantity > initialStock ? initialStock : cartItem.quantity
+      );
     }
   }, [cartItem, initialStock]);
 
@@ -48,21 +52,25 @@ const ProductCard = ({ product, adminView = false }) => {
     dispatch(toggleFavorite({ ...product, productId }));
   };
 
-  const handleToggleCart = (e) => {
-    e.stopPropagation();
-    if (!auth.currentUser) return navigate("/login");
-    if (initialStock <= 0) return;
+  // ✅ FIXED LOGIC HERE
+const handleToggleCart = (e) => {
+  e.stopPropagation();
+  if (!auth.currentUser) return navigate("/login");
+  if (initialStock <= 0) return;
 
-    const finalQty = quantity > initialStock ? initialStock : quantity;
-
+  if (isInCart) {
+    dispatch(removeFromCartFirebase(productId));
+    setQuantity(1);
+  } else {
     dispatch(
       toggleCartItem({
         product: { ...product, productId },
-        quantity: finalQty,
+        quantity: 1,
       })
     );
-    setQuantity(finalQty);
-  };
+    setQuantity(1);
+  }
+};
 
   const handleIncrease = (e) => {
     e.stopPropagation();
@@ -195,15 +203,17 @@ const ProductCard = ({ product, adminView = false }) => {
               cursor: initialStock > 0 ? "pointer" : "not-allowed",
             }}
             onMouseEnter={(e) => {
-              if (initialStock > 0) e.currentTarget.style.backgroundColor = primaryHover;
+              if (initialStock > 0)
+                e.currentTarget.style.backgroundColor = primaryHover;
             }}
             onMouseLeave={(e) => {
-              if (initialStock > 0) e.currentTarget.style.backgroundColor = primaryColor;
+              if (initialStock > 0)
+                e.currentTarget.style.backgroundColor = primaryColor;
             }}
             disabled={initialStock <= 0}
           >
-            {isInCart ? "Update Cart" : "Add to Cart"}
-            <ArrowRight size={18} />
+            {isInCart ? "Remove from Cart" : "Add to Cart"}
+            <ArrowRight size={16} />
           </button>
         </div>
       )}

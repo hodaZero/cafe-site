@@ -280,7 +280,7 @@ function SidebarContent({
           className="text-xl font-bold text-light-heading dark:text-dark-heading"
           style={{ fontFamily: "'Playwrite CZ', cursive" }}
         >
-          <span className="text-light-primary">D</span>omi{" "}
+          <span className="text-light-primary">H</span>oax{" "}
           <span className="text-light-primary">C</span>afe
         </span>
 
